@@ -18,3 +18,6 @@ data/
 *.db-journal
 *.db-wal
 *.db-shm
+
+# Private notes for whoever runs the install (setup, settings, backups)
+DEPLOY.md

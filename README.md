@@ -1,123 +1,102 @@
 # Kivo Office
 
-A self-hosted kanban roadmap tool for one company per install. IT admins invite managers, managers invite their team and run roadmaps, everyone works on the tasks assigned to them, and an append-only audit log records every action.
+Kanban roadmaps for a whole company. IT admins invite managers, managers invite their team and run roadmaps, everyone works on the tasks assigned to them, and an append-only log records every action.
 
-It is a small Node app (Express, SQLite through better-sqlite3, bcryptjs) with a plain HTML/CSS/JavaScript frontend. The whole state of an install is one SQLite file in `data/`.
+One company per install. A small Node server (Express, SQLite) with a plain HTML/CSS/JavaScript frontend.
 
-The approved clickable prototype that this app is built from is kept in [`prototype/kivo-office.html`](prototype/kivo-office.html). Its screenshots are in [`docs/screenshots`](docs/screenshots).
+## Screenshots
 
-## What it does
+These are from the approved clickable prototype ([`prototype/kivo-office.html`](prototype/kivo-office.html)) that the app is built from, so they show fake demo people and roadmaps. The prototype's login screen has a demo account switcher; the real app doesn't.
 
-- **Accounts:** IT admin, Manager and Team member. IT invites managers and other IT admins; managers invite team members. Nobody hands out passwords: every new account gets a one-time **invite link** (48 hours, single use, a newer link replaces an older one), and forgotten passwords get a **reset link** that only replaces the old password once it is used.
-- **Roadmaps:** each has an owner (the manager who made it) and people on it, from any team. Per roadmap the owner picks who creates tasks: everyone, the owner only, or the owner plus chosen task handlers.
-- **Tasks:** only assigned people edit a task or change its status. Status only moves forward (Planned, In progress, Finished, skipping ahead is fine) and every move asks for confirmation. Only the roadmap owner can move a task back, and that is logged as an override. List and board views, with drag and drop (mouse, and a short hold on touch screens) and a right-click / long-press menu.
-- **No lost changes:** if someone changed a task or a roadmap's settings while you had it open, saving tells you to reload instead of overwriting their change.
-- **Comments:** anyone on the roadmap comments. You delete your own; the roadmap owner and IT delete any. The log notes the deletion, never the text.
-- **Profiles:** picture and status (available, busy, away, plus a short message).
-- **Deactivate, never delete:** a deactivated person is signed out everywhere at once and can't sign in. Their open tasks are unassigned and flagged for the roadmap owner. A manager who still owns roadmaps or team members has to be transferred to another manager first (IT does that in one step). The last IT admin can't be deactivated. If IT deactivated someone, only IT can bring them back.
-- **Archive** a roadmap (owner or IT) to make it read-only everywhere. **Delete** only hides it: IT still sees it, with its log, under Deleted roadmaps.
-- **Logs:** the activity log (IT), the password log (IT: who issued which link, and when it was used), a log per roadmap (IT and the owner) and per account. All of them can be filtered and paged.
-
-## Run it
-
-You need Node.js 22 or newer.
-
-```bash
-npm install
-cp .env.example .env      # then edit it, see below
-npm start
-```
-
-For development, `npm run dev` restarts on every change. The example `.env` works as it is for a local run on `http://localhost:3000`. For a real install set `NODE_ENV=production` and an `https://` `APP_URL`; the server warns on start when production runs without them.
-
-### First start
-
-There is no default account and no default password. When the database has no accounts, the server prints a one-time **setup link** on its console:
-
-```
-No accounts yet. Open this one-time link to create the first IT admin account:
-
-  https://kivo.example.com/#/invite/...
-```
-
-Open it, choose your name, username and password, and you are the first IT admin. The link works once and expires after 48 hours; every restart of an empty install prints a fresh one.
-
-If nobody can sign in as IT any more, run `npm run setup-link` on the server for a new link. While an IT admin can still sign in it refuses; `npm run setup-link -- --force` makes one anyway (whoever runs it has access to the server and its database already).
-
-### With Docker
-
-```bash
-cp .env.example .env      # fill in APP_URL, and the tunnel token if you use it
-docker compose up -d --build
-docker compose logs app   # shows the setup link on the first start
-```
-
-The app is published on `127.0.0.1:3000` only (change the port with `HOST_PORT` in `.env`). Compose passes the app only the settings it reads, and always sets `TRUST_PROXY=1`, since a proxy or the tunnel sits in front. The cloudflared image is pinned to a version; bump it by hand. To reach it from outside, use the included Cloudflare tunnel (`docker compose --profile tunnel up -d`, with `CLOUDFLARE_TUNNEL_TOKEN` in `.env` and the tunnel pointed at `http://app:3000`) or your own HTTPS reverse proxy. Data lives in `./data` next to the compose file.
-
-Scripts inside the container run as the `node` user:
-
-```bash
-docker compose exec -u node app npm run setup-link
-docker compose exec -u node app npm run backup
-```
-
-## Settings (`.env`)
-
-| Variable | What it does |
+| | |
 |---|---|
-| `PORT` | Port to listen on with `npm start`. Default `3000`. Fixed to `3000` inside Docker. |
-| `HOST_PORT` | Docker only: the port on this machine (127.0.0.1) that reaches the app. Default `3000`. |
-| `NODE_ENV` | `production` makes the session cookie `Secure` (HTTPS only) and adds HSTS. |
-| `APP_URL` | The address people open, e.g. `https://kivo.example.com`. Invite and reset links are built from it. Without it the copy box uses the address in your browser and nothing is emailed. Always set it behind a proxy that rewrites the `Host` header, or every change is refused by the cross-site check. |
-| `DATA_DIR` | Where the database and backups go. A relative path is taken relative to the project folder (where `package.json` is), not the folder you start from. Default `data`. Fixed to `/app/data` inside Docker (the `./data` folder next to `docker-compose.yml`). |
-| `TRUST_PROXY` | Set to `1` when one proxy or tunnel (like cloudflared) sits in front, so sign-in limits count real visitors, not the proxy. `docker-compose.yml` always sets `1`. Accepts what Express's `trust proxy` accepts; avoid `true`, which lets visitors fake their address. |
-| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM` | Optional. With all five (and `APP_URL`) set, invite and reset links are also emailed to the account's email address. Port 465 uses TLS directly; other ports must upgrade with STARTTLS or nothing is sent. |
-| `CLOUDFLARE_TUNNEL_TOKEN` | Only for the optional tunnel in `docker-compose.yml`. It is passed to the cloudflared container only, never to the app. |
+| ![Login](docs/screenshots/01-login.png) | ![Manager roadmaps](docs/screenshots/02-manager-roadmaps.png) |
+| Login (prototype, with the demo switcher) | A manager's roadmaps |
+| ![Roadmap list](docs/screenshots/03-roadmap-list.png) | ![Roadmap board](docs/screenshots/04-roadmap-board.png) |
+| Roadmap, list view | Roadmap, board view |
+| ![My team](docs/screenshots/05-my-team.png) | ![IT dashboard](docs/screenshots/06-it-dashboard.png) |
+| A manager's team | IT admin dashboard |
+| ![Activity log](docs/screenshots/07-activity-log.png) | ![Password log](docs/screenshots/08-password-log.png) |
+| Append-only activity log | Password log (invite and reset links) |
 
-Email addresses are optional: the inviter can fill one in, and people can set their own on their profile page.
+## How it works
 
-## Backups and moving to another server
+### Three kinds of accounts
 
-Everything is in `DATA_DIR` (default `data/` in the project folder): one SQLite database `kivo-office.db` that holds all accounts, roadmaps, tasks, comments, profile pictures and logs. Secrets are in `.env`.
+- **IT admins** look after the install. Their dashboard lists every roadmap on the left and every manager on the right, with the team members each manager invited nested underneath, plus a panel with the other IT admins. IT can open and comment on every roadmap (so they can help someone who is stuck), but doesn't edit tasks.
+- **Managers** invite their team, create roadmaps and decide who works on what.
+- **Team members** work on the tasks assigned to them and comment on the rest.
 
-**Backup:** `npm run backup` writes a consistent copy to `data/backups/kivo-office-YYYYMMDD-HHMMSS.db`. It is safe to run while the app is running. Copy those files somewhere else (another disk, another machine) regularly; a backup that only lives next to the original doesn't survive a dead disk.
+### Joining: invite links, no handed-out passwords
 
-**Restore:** stop the app, replace `data/kivo-office.db` with a backup file (and delete `kivo-office.db-wal` and `kivo-office.db-shm` if they are there), start the app.
+Nobody ever picks a password for someone else. IT invites managers and other IT admins; a manager invites team members from **My team**. Each invite produces a one-time link, shown once in a copy box (and emailed too, when the install has email set up). The new person opens it, chooses their own password and is signed in.
 
-**Move the install to another server:**
+Links work once and expire after 48 hours. Issuing a new link cancels the old one. A forgotten password works the same way: **Send reset link** gives the person a link to choose a new one, and their old password keeps working until they use it. Using a reset link signs them out everywhere else.
 
-1. Stop the app on the old server (`docker compose down`, or stop `npm start`). Stopping first matters: it makes sure everything is written into the database file.
-2. Copy the whole `data/` folder and the `.env` file to the new server, next to a fresh checkout of this repository.
-3. If the address changes, update `APP_URL` in `.env` (and point the tunnel or DNS at the new server).
-4. Start it there (`docker compose up -d --build`, or `npm install` and `npm start`). Everyone keeps their accounts; they only need to sign in again if the address changed.
+The very first IT admin of a new install gets their link from the server itself; there is no default account or password.
 
-## Security notes
+### Roadmaps and roles
 
-- The server enforces every rule; the pages only hide buttons you can't use. Refused attempts are logged.
-- **Sessions:** a random token in an `HttpOnly`, `SameSite=Strict` cookie (`Secure` in production), stored only as a SHA-256 hash, with a 12-hour sliding expiry and a hard limit of 7 days after sign-in. Logging out deletes the session on the server. The account is loaded from the database on every request, so a deactivation or password reset takes effect immediately and ends all of that person's sessions.
-- **CSRF:** besides `SameSite=Strict`, every change needs an `X-Kivo` request header and, when the browser sends an `Origin`, it must be this site.
-- **Passwords:** 10 to 200 characters, stored with bcrypt (cost 12). Typed passwords are never logged. A failed sign-in only logs the username when the input looks like a username and belongs to a real account (a password typed into the username box often looks like a username too).
-- **Sign-in limits** (each lock lasts 15 minutes; failures count within a 15-minute window):
-  - 8 failed attempts for one username from one address lock that username from that address only. Someone else can't keep you locked out from your own desk.
-  - 100 failed attempts for one username, from any mix of addresses, lock that username everywhere. This is a brake against wide password guessing.
-  - 8 failed attempts from one address, whatever usernames, lock that address. IPv6 addresses count per /64 network, which is what one home or office usually gets.
-  - Failures and lockouts for real accounts are logged. Attempts on usernames that don't exist are counted but not logged, so made-up names can't grow the append-only log.
-  - Behind a proxy, set `TRUST_PROXY` (see above; `docker-compose.yml` already does), otherwise everyone shares one address. A whole office behind one public IP also shares that address limit.
-- **Links:** invite, reset and setup tokens are 32 random bytes. Only their SHA-256 is stored, they work once, expire after 48 hours, and travel in the URL fragment (`#/invite/...`), which browsers never send to a server.
-- **Audit log:** append-only, enforced by the database itself: triggers refuse any `UPDATE`, `DELETE` or `REPLACE` on the activity and password logs.
-- **Input:** everything is validated and length-capped, SQL is always parameterised, and the frontend only ever inserts user text as text, never as HTML. Profile pictures are shrunk in the browser and checked again on the server (JPEG, PNG or WebP only, at most 100 KB, and the file's first bytes must match its type).
-- **Headers:** a strict Content-Security-Policy without inline scripts, `X-Content-Type-Options: nosniff`, `Referrer-Policy: no-referrer` and `frame-ancestors 'none'`.
-- **Fonts** (Bricolage Grotesque and Instrument Sans, SIL Open Font License, licences in `public/fonts/`) are served by the app itself, so no visitor's address goes to Google or any other third party.
-- **Profile pictures** are only shown to people who may see that profile (IT, the person's manager, and people sharing a roadmap with them); everyone else gets the initials. Accounts you can't see answer exactly like accounts that don't exist.
+A roadmap belongs to the manager who created it (its owner). The owner can put anyone on it, from their own team or someone else's, other managers included. In the roadmap's **Settings** the owner also chooses who may create tasks:
 
-## Tests
+- **Everyone on the roadmap**
+- **Manager only**
+- **Manager + chosen task handlers**, people the owner picks to create and hand out tasks
 
-```bash
-npm test
-```
+### Tasks
 
-The tests start the real server on a random port with a temporary data folder and use it over HTTP, the way a browser does. They cover the invite and reset flows, task and comment permissions, archiving, deactivation and transfers, the audit log triggers, CSRF, sign-in lockouts and that no password ends up in the database or the server output.
+Each task has a status: **Planned**, **In progress** or **Finished**.
+
+- Only the people a task is assigned to can edit it or change its status. Everyone else on the roadmap can read it and comment.
+- Status only moves forward (skipping ahead is fine), and every move asks you to confirm, because it can't be undone. Only the roadmap's owner can move a task back, for example to reopen it, and that shows up in the log as an override.
+- Switch between **List** and **Board**. On the board you drag a card to another column; the column lights up where you can drop it and turns red where you can't. On a phone, hold the card a moment before dragging.
+- If someone else changed a task or the roadmap's settings while you had it open, saving tells you to reload instead of quietly overwriting their change.
+
+### Right-click menu
+
+Right-click a task, roadmap, person or comment for a menu with the things you're allowed to do there: open or edit, move to another status, assign, delete, settings, logs, archive, send a reset link, deactivate. On a touch screen, hold the item for about half a second. Text fields and selected text keep the browser's normal menu.
+
+### Comments
+
+Anyone on a roadmap can comment on its tasks. You can delete your own comments; the roadmap's owner can delete any comment on their roadmap, and IT any comment anywhere. The log records that a comment was deleted and whose it was, never what it said.
+
+### Profiles
+
+Everyone has a profile picture and a status (available, busy or away, plus a short message), shown as a dot on their picture throughout the app. Pictures are only shown to people who work with you: IT, your manager and people on the same roadmaps. Everyone else sees your initials.
+
+### People leaving: deactivate, never delete
+
+Accounts are never deleted, so the history stays complete.
+
+- **Deactivate** signs the person out everywhere at once and stops them from signing in. They show as "Name (deactivated)" and their history stays. Their open tasks become unassigned and are flagged so the roadmap's owner picks someone new.
+- Before IT can deactivate a manager who still owns roadmaps or team members, those are **transferred** to another manager, in one step.
+- The last IT admin who can sign in can't be deactivated.
+- **Reactivate** brings someone back. If IT deactivated them, only IT can.
+
+### Archiving and deleting roadmaps
+
+- **Archive** (the owner or IT) moves a finished roadmap into a collapsible **Archived** section. It stays readable but nothing in it can change, until someone unarchives it.
+- **Delete** only hides a roadmap. IT still sees it, with its full log, under **Deleted roadmaps**.
+
+### Logs
+
+Everything that happens is logged: sign-ins and failed sign-ins, invites and resets, accounts, roadmaps, tasks, comments, profile changes, overrides, and anything the server refused. The log is append-only: nobody can edit or remove an entry, IT included, and the database itself enforces that.
+
+- **Activity** (IT): the whole install.
+- **Password log** (IT): which invite and reset links were issued, by whom, and when they were used. Passwords themselves are never shown or stored readably.
+- **Logs** on a roadmap (IT and its owner): everything that happened on that roadmap.
+- **Profile & log** on a person: their profile and what they did.
+
+Every log can be searched and paged.
+
+## Security in short
+
+- The server enforces every rule above; the pages only hide buttons you can't use.
+- Sessions live on the server and end at sign-out, deactivation or a password reset, and after 7 days at the latest.
+- Passwords are stored only as bcrypt hashes and are never logged. Link tokens are stored only as hashes.
+- Repeated failed sign-ins are slowed down and locked for 15 minutes, per account and address, without letting a stranger lock you out of your own account.
+- A strict Content-Security-Policy, cross-site request checks and validated input throughout. Fonts are served by the app itself, so no visitor data goes to third parties.
 
 ## License
 
-Source-available, **not** open source. You may read the code, run it locally and contribute back through pull requests, but you may not redistribute, host or reuse it elsewhere. See [LICENSE](LICENSE).
+Source-available, **not** open source. You may read the code and contribute back through pull requests, but you may not redistribute, host or reuse it elsewhere. See [LICENSE](LICENSE).
