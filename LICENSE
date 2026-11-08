@@ -1,0 +1,55 @@
+Kivo Office Source-Available License
+Version 1.0
+
+Copyright (c) 2026 Findiepman. All rights reserved.
+
+This repository and everything in it (the "Software") is made public so
+people can read it and help improve it. It is NOT open source. You may only
+use it as described below.
+
+1. What you may do
+
+   a. View and read the Software.
+   b. Fork this repository on GitHub and clone it to your own machine, only
+      to work on contributions to this repository.
+   c. Run the Software on your own machine to evaluate it, test it or
+      develop contributions.
+   d. Submit contributions (pull requests, patches, issues) back to this
+      repository.
+
+2. What you may not do
+
+   Without prior written permission from the copyright holder, you may not:
+
+   a. Redistribute, publish, share, sell, rent or sublicense the Software or
+      any part of it, in original or modified form, except for the GitHub
+      fork allowed in 1(b).
+   b. Host, deploy or offer the Software (or anything derived from it) to
+      other people, as a service or otherwise.
+   c. Use the Software, or any part of it, in another product or project.
+   d. Remove or change this license or any copyright notice.
+
+3. Contributions
+
+   By submitting a contribution to this repository you confirm that you
+   have the right to do so, and you grant the copyright holder a perpetual,
+   worldwide, non-exclusive, royalty-free, irrevocable license to use,
+   modify, relicense and distribute your contribution as part of the
+   Software or otherwise. You keep the copyright to your contribution.
+
+4. Termination
+
+   If you break any of these terms, your permission to use the Software
+   ends immediately and you must delete every copy you have.
+
+5. No warranty
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+   OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+   IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES
+   OR OTHER LIABILITY ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+   SOFTWARE OR ITS USE.
+
+For permission beyond these terms, open an issue on
+https://github.com/Findiepman/Kivo-Office

@@ -1,0 +1,3736 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kivo Office (prototype)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;600;700;800&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%231b6fb8'/%3E%3Ctext x='16' y='23' font-size='20' font-weight='800' text-anchor='middle' fill='white' font-family='sans-serif'%3EK%3C/text%3E%3C/svg%3E">
+
+
+    <style>
+/* ---- theme.css (copied from current Kivo) ---- */
+/* ============================================================
+   Kivo theme — "clear sky"
+   Baby blue and white. Soft clouds, big radii, one deep blue
+   for actions. Display face: Bricolage Grotesque. Body face:
+   Instrument Sans.
+   ============================================================ */
+
+:root {
+    /* palette */
+    --paper: #f2f8fe;
+    /* page background, near-white with a blue cast */
+    --cloud: #ffffff;
+    /* cards */
+    --baby: #bfe0f7;
+    /* signature baby blue */
+    --baby-soft: #e2f0fb;
+    /* washes, hovers */
+    --sky: #4a9fde;
+    /* bright accents */
+    --deep: #1b6fb8;
+    /* primary actions */
+    --deep-press: #155a97;
+    --ink: #12324e;
+    /* headings, body text */
+    --ink-soft: #557595;
+    /* secondary text */
+    --line: #d5e7f7;
+    /* hairlines, borders */
+
+    /* status */
+    --st-planned: #7fa6c7;
+    --st-progress: #e59f35;
+    --st-finished: #3fa46a;
+    --st-planned-bg: #eaf2f9;
+    --st-progress-bg: #fdf3e3;
+    --st-finished-bg: #e8f6ee;
+
+    /* misc */
+    --danger: #d4544a;
+    --radius: 20px;
+    --radius-sm: 12px;
+    --shadow: 0 10px 30px rgba(27, 111, 184, 0.10);
+    --shadow-lift: 0 16px 40px rgba(27, 111, 184, 0.16);
+    --font-display: 'Bricolage Grotesque', 'Instrument Sans', sans-serif;
+    --font-body: 'Instrument Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    -webkit-font-smoothing: antialiased;
+}
+
+body {
+    font-family: var(--font-body);
+    color: var(--ink);
+    background: var(--paper);
+    min-height: 100vh;
+}
+
+/* signature sky: two soft cloud washes floating near the top of every page */
+.sky-body {
+    background:
+        radial-gradient(900px 420px at 12% -8%, rgba(191, 224, 247, 0.75), transparent 65%),
+        radial-gradient(700px 380px at 88% -12%, rgba(191, 224, 247, 0.55), transparent 60%),
+        var(--paper);
+    background-attachment: fixed;
+}
+
+button {
+    font-family: inherit;
+    cursor: pointer;
+}
+
+input,
+textarea,
+select {
+    font-family: inherit;
+}
+
+a {
+    color: var(--deep);
+}
+
+/* ---------- top bar ---------- */
+
+.topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.9rem 1.5rem;
+    background: rgba(255, 255, 255, 0.82);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+    position: sticky;
+    top: 0;
+    z-index: 40;
+}
+
+.topbar-left,
+.topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    min-width: 0;
+}
+
+.brand {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 1.45rem;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    text-decoration: none;
+}
+
+.brand .brand-dot {
+    color: var(--sky);
+}
+
+.icon-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 1px solid var(--line);
+    background: var(--cloud);
+    color: var(--ink-soft);
+    text-decoration: none;
+    font-size: 1.05rem;
+    transition: background 0.15s, color 0.15s;
+}
+
+.icon-link:hover {
+    background: var(--baby-soft);
+    color: var(--deep);
+}
+
+.user-chip {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.3rem 0.85rem 0.3rem 0.3rem;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--cloud);
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--ink);
+    max-width: 220px;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+/* ---------- avatars ---------- */
+
+.avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--baby), var(--sky));
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    flex-shrink: 0;
+    user-select: none;
+}
+
+.avatar-stack {
+    display: inline-flex;
+    align-items: center;
+}
+
+.avatar-stack .avatar {
+    border: 2px solid var(--cloud);
+    margin-left: -8px;
+}
+
+.avatar-stack .avatar:first-child {
+    margin-left: 0;
+}
+
+/* ---------- buttons ---------- */
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    border: none;
+    border-radius: 999px;
+    padding: 0.62rem 1.35rem;
+    font-size: 0.92rem;
+    font-weight: 700;
+    background: var(--deep);
+    color: #fff;
+    transition: background 0.15s, transform 0.15s, box-shadow 0.15s;
+    box-shadow: 0 6px 16px rgba(27, 111, 184, 0.25);
+    text-decoration: none;
+}
+
+.btn:hover {
+    background: var(--deep-press);
+    transform: translateY(-1px);
+}
+
+.btn:disabled {
+    opacity: 0.55;
+    cursor: default;
+    transform: none;
+}
+
+.btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 0.6rem 1.25rem;
+    font-size: 0.92rem;
+    font-weight: 600;
+    background: var(--cloud);
+    color: var(--ink);
+    transition: background 0.15s, border-color 0.15s;
+    text-decoration: none;
+}
+
+.btn-ghost:hover {
+    background: var(--baby-soft);
+    border-color: var(--baby);
+}
+
+.btn-danger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 999px;
+    padding: 0.62rem 1.35rem;
+    font-size: 0.92rem;
+    font-weight: 700;
+    background: var(--danger);
+    color: #fff;
+    transition: filter 0.15s;
+}
+
+.btn-danger:hover {
+    filter: brightness(0.92);
+}
+
+.btn-danger-ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(212, 84, 74, 0.35);
+    border-radius: 999px;
+    padding: 0.55rem 1.1rem;
+    font-size: 0.88rem;
+    font-weight: 600;
+    background: transparent;
+    color: var(--danger);
+    transition: background 0.15s;
+}
+
+.btn-danger-ghost:hover {
+    background: rgba(212, 84, 74, 0.08);
+}
+
+.btn-small {
+    padding: 0.4rem 0.95rem;
+    font-size: 0.84rem;
+}
+
+/* visible keyboard focus everywhere */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+    outline: 3px solid rgba(74, 159, 222, 0.55);
+    outline-offset: 2px;
+}
+
+/* ---------- forms ---------- */
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    margin-bottom: 1.05rem;
+}
+
+.form-group label {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--ink-soft);
+    letter-spacing: 0.02em;
+}
+
+.form-group input,
+.form-group textarea {
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    background: var(--cloud);
+    padding: 0.7rem 0.9rem;
+    font-size: 0.95rem;
+    color: var(--ink);
+    transition: border-color 0.15s, box-shadow 0.15s;
+    resize: vertical;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--sky);
+    box-shadow: 0 0 0 4px rgba(74, 159, 222, 0.15);
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+    color: #9db8d2;
+}
+
+.form-error {
+    color: var(--danger);
+    font-size: 0.86rem;
+    font-weight: 600;
+    min-height: 1.1em;
+    margin: 0.2rem 0 0.6rem;
+}
+
+/* ---------- modals ---------- */
+
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(18, 50, 78, 0.35);
+    backdrop-filter: blur(4px);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    padding: 1.25rem;
+}
+
+.modal.open {
+    display: flex;
+}
+
+.modal-card {
+    background: var(--cloud);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lift);
+    width: 100%;
+    max-width: 520px;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: modal-in 0.18s ease-out;
+}
+
+.modal-card.modal-small {
+    max-width: 420px;
+}
+
+@keyframes modal-in {
+    from {
+        opacity: 0;
+        transform: translateY(10px) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    .modal-card,
+    .btn,
+    .btn-ghost {
+        animation: none;
+        transition: none;
+    }
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.25rem 1.5rem 0.5rem;
+}
+
+.modal-header h3 {
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+
+.btn-close {
+    border: none;
+    background: transparent;
+    color: var(--ink-soft);
+    font-size: 1.5rem;
+    line-height: 1;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    transition: background 0.15s;
+}
+
+.btn-close:hover {
+    background: var(--baby-soft);
+}
+
+.modal-body {
+    padding: 0.9rem 1.5rem 0.5rem;
+}
+
+.modal-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.6rem;
+    padding: 0.75rem 1.5rem 1.4rem;
+}
+
+.modal-footer .push-left {
+    margin-right: auto;
+}
+
+/* ---------- status pills ---------- */
+
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    border: none;
+    border-radius: 999px;
+    padding: 0.32rem 0.8rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.status-pill .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.status-planned {
+    background: var(--st-planned-bg);
+    color: #4b7396;
+}
+
+.status-in_progress {
+    background: var(--st-progress-bg);
+    color: #a86d14;
+}
+
+.status-finished {
+    background: var(--st-finished-bg);
+    color: #257a4c;
+}
+
+/* segmented status control (task modal) */
+.status-seg {
+    display: flex;
+    background: var(--baby-soft);
+    border-radius: 999px;
+    padding: 4px;
+    gap: 4px;
+}
+
+.status-seg button {
+    flex: 1;
+    border: none;
+    background: transparent;
+    border-radius: 999px;
+    padding: 0.5rem 0.4rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--ink-soft);
+    transition: background 0.15s, color 0.15s;
+}
+
+.status-seg button:hover {
+    color: var(--ink);
+}
+
+.status-seg button.active {
+    background: var(--cloud);
+    box-shadow: 0 2px 8px rgba(27, 111, 184, 0.18);
+}
+
+.status-seg button.active[data-status="planned"] {
+    color: #4b7396;
+}
+
+.status-seg button.active[data-status="in_progress"] {
+    color: #a86d14;
+}
+
+.status-seg button.active[data-status="finished"] {
+    color: #257a4c;
+}
+
+/* ---------- tag pills ---------- */
+
+.task-tag {
+    display: inline-block;
+    padding: 0.18rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.74rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.tag-c0 { background: #e3effa; color: #2a6ca8; }
+.tag-c1 { background: #e6f4ef; color: #237a55; }
+.tag-c2 { background: #fdf1e0; color: #a06a15; }
+.tag-c3 { background: #f4e9fa; color: #7b3fa4; }
+.tag-c4 { background: #fdeaea; color: #b04a44; }
+.tag-c5 { background: #e5f3f6; color: #22788b; }
+.tag-c6 { background: #eeeffb; color: #4b53b8; }
+.tag-c7 { background: #fbecf3; color: #ab4478; }
+
+/* ---------- dropdown menus ---------- */
+
+.menu-wrap {
+    position: relative;
+}
+
+.menu-btn {
+    border: none;
+    background: transparent;
+    color: var(--ink-soft);
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    font-size: 1.2rem;
+    line-height: 1;
+    transition: background 0.15s;
+}
+
+.menu-btn:hover {
+    background: var(--baby-soft);
+    color: var(--ink);
+}
+
+.menu {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: calc(100% + 6px);
+    background: var(--cloud);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-lift);
+    min-width: 170px;
+    padding: 0.35rem;
+    z-index: 60;
+}
+
+.menu.open {
+    display: block;
+}
+
+.menu-item {
+    display: block;
+    width: 100%;
+    text-align: left;
+    border: none;
+    background: transparent;
+    border-radius: 8px;
+    padding: 0.55rem 0.75rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--ink);
+    transition: background 0.12s;
+}
+
+.menu-item:hover {
+    background: var(--baby-soft);
+}
+
+.menu-item.danger {
+    color: var(--danger);
+}
+
+.menu-item.danger:hover {
+    background: rgba(212, 84, 74, 0.08);
+}
+
+/* ---------- misc ---------- */
+
+.role-badge {
+    display: inline-block;
+    padding: 0.16rem 0.6rem;
+    border-radius: 999px;
+    background: var(--baby-soft);
+    color: var(--deep);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    vertical-align: middle;
+}
+
+.delete-warning {
+    color: var(--ink-soft);
+    font-size: 0.95rem;
+    line-height: 1.55;
+}
+
+/* ---- auth.css (copied from current Kivo) ---- */
+/* Sign-in page — one white card floating in a baby blue sky. */
+
+.auth-body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 1.5rem;
+    background:
+        radial-gradient(800px 500px at 15% 0%, rgba(191, 224, 247, 0.9), transparent 60%),
+        radial-gradient(700px 450px at 90% 20%, rgba(191, 224, 247, 0.65), transparent 60%),
+        radial-gradient(600px 400px at 50% 110%, rgba(191, 224, 247, 0.5), transparent 65%),
+        var(--paper);
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 400px;
+    background: var(--cloud);
+    border: 1px solid var(--line);
+    border-radius: 26px;
+    box-shadow: var(--shadow-lift);
+    padding: 2.5rem 2.25rem 2rem;
+    text-align: center;
+}
+
+.auth-logo {
+    font-family: var(--font-display);
+    font-size: 1.6rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin-bottom: 1.6rem;
+}
+
+.auth-logo .brand-dot {
+    color: var(--sky);
+}
+
+.auth-title {
+    font-family: var(--font-display);
+    font-size: 1.75rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.35rem;
+}
+
+.auth-subtitle {
+    color: var(--ink-soft);
+    font-size: 0.95rem;
+    margin-bottom: 1.8rem;
+}
+
+.auth-form {
+    text-align: left;
+}
+
+.auth-submit {
+    width: 100%;
+    margin-top: 0.4rem;
+    padding: 0.8rem;
+    font-size: 1rem;
+}
+
+.auth-note {
+    margin-top: 1.5rem;
+    font-size: 0.84rem;
+    color: var(--ink-soft);
+}
+
+/* ---- settings.css (copied from current Kivo) ---- */
+/* Settings — account overview plus the admin panel. */
+
+.page {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 5rem;
+}
+
+.page-head {
+    margin-bottom: 2rem;
+}
+
+.page-title {
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 5vw, 2.6rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+}
+
+.settings-card {
+    background: var(--cloud);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 1.6rem 1.75rem;
+    margin-bottom: 1.4rem;
+}
+
+.card-title {
+    font-family: var(--font-display);
+    font-size: 1.2rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin-bottom: 1rem;
+}
+
+.card-note {
+    font-size: 0.88rem;
+    color: var(--ink-soft);
+    line-height: 1.5;
+    margin-bottom: 1.2rem;
+}
+
+.account-row {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    margin-bottom: 0.6rem;
+}
+
+.avatar-lg {
+    width: 52px;
+    height: 52px;
+    font-size: 1.3rem;
+}
+
+.account-name {
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+/* admin create form: inline on wide screens */
+.admin-create {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 0.75rem;
+    align-items: end;
+    margin-bottom: 0.4rem;
+}
+
+.admin-create .form-group {
+    margin-bottom: 0;
+}
+
+.user-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.user-row {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: 0.6rem 0.8rem;
+}
+
+.user-row .user-name {
+    font-weight: 700;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+    flex-wrap: wrap;
+}
+
+.user-row .user-since {
+    font-size: 0.78rem;
+    color: var(--ink-soft);
+    font-weight: 500;
+}
+
+.user-row .user-actions {
+    margin-left: auto;
+    display: flex;
+    gap: 0.4rem;
+    flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+    .page {
+        padding: 2rem 1rem 4rem;
+    }
+
+    .admin-create {
+        grid-template-columns: 1fr;
+        align-items: stretch;
+    }
+
+    .user-row {
+        flex-wrap: wrap;
+    }
+
+    .user-row .user-actions {
+        width: 100%;
+        margin-left: 0;
+        justify-content: flex-end;
+    }
+}
+
+/* ---- dashboard.css (copied from current Kivo) ---- */
+/* Dashboard — a stack of wide "flight strip" roadmap cards on a sky page. */
+
+.page {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 5rem;
+}
+
+.page-head {
+    margin-bottom: 2rem;
+}
+
+.page-eyebrow {
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--sky);
+    margin-bottom: 0.35rem;
+    min-height: 1em;
+}
+
+.page-title {
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 5vw, 2.9rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+}
+
+/* ---------- roadmap strips ---------- */
+
+.roadmap-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.roadmap-strip {
+    position: relative;
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: var(--cloud);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 1.4rem 1.6rem 1.5rem;
+    cursor: pointer;
+    transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s;
+}
+
+.roadmap-strip:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lift);
+    border-color: var(--baby);
+}
+
+.strip-top {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+}
+
+.strip-title {
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    line-height: 1.2;
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+}
+
+.strip-desc {
+    color: var(--ink-soft);
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin-top: 0.3rem;
+    max-width: 60ch;
+}
+
+/* runway progress bar: finished share of all tasks */
+.strip-runway {
+    margin-top: 1.15rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.runway {
+    flex: 1;
+    height: 10px;
+    border-radius: 999px;
+    background: var(--baby-soft);
+    overflow: hidden;
+    display: flex;
+}
+
+.runway .seg {
+    height: 100%;
+}
+
+.runway .seg-finished {
+    background: var(--st-finished);
+}
+
+.runway .seg-progress {
+    background: var(--st-progress);
+}
+
+.runway-label {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--ink-soft);
+    white-space: nowrap;
+}
+
+.strip-meta {
+    margin-top: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 1.1rem;
+    flex-wrap: wrap;
+    font-size: 0.84rem;
+    color: var(--ink-soft);
+    font-weight: 600;
+}
+
+.strip-meta .count-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 0.35rem;
+    vertical-align: 1px;
+}
+
+.count-dot.planned { background: var(--st-planned); }
+.count-dot.in_progress { background: var(--st-progress); }
+.count-dot.finished { background: var(--st-finished); }
+
+.strip-members {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-left: auto;
+}
+
+.strip-menu-wrap {
+    position: absolute;
+    top: 1.1rem;
+    right: 1.1rem;
+}
+
+/* ---------- empty state ---------- */
+
+.empty-state {
+    text-align: center;
+    padding: 4rem 1rem;
+    color: var(--ink-soft);
+}
+
+.empty-cloud {
+    font-size: 3.2rem;
+    color: var(--baby);
+    line-height: 1;
+    margin-bottom: 0.8rem;
+}
+
+.empty-state h2 {
+    font-family: var(--font-display);
+    color: var(--ink);
+    font-weight: 700;
+    margin-bottom: 0.4rem;
+}
+
+.empty-state p {
+    max-width: 46ch;
+    margin: 0 auto 1.6rem;
+    line-height: 1.5;
+}
+
+/* ---------- sharing modal bits ---------- */
+
+.access-add-row {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.access-add-row input {
+    flex: 1;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: 0.65rem 0.9rem;
+    font-size: 0.95rem;
+    color: var(--ink);
+}
+
+.access-add-row input:focus {
+    outline: none;
+    border-color: var(--sky);
+    box-shadow: 0 0 0 4px rgba(74, 159, 222, 0.15);
+}
+
+.access-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    margin-bottom: 1.4rem;
+}
+
+.access-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: 0.5rem 0.7rem;
+}
+
+.access-row-left {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    font-weight: 600;
+    font-size: 0.92rem;
+}
+
+.access-empty {
+    color: var(--ink-soft);
+    font-size: 0.88rem;
+    padding: 0.3rem 0.1rem;
+}
+
+.public-share {
+    border-top: 1px solid var(--line);
+    padding-top: 1.1rem;
+    margin-bottom: 1rem;
+}
+
+.public-share-label {
+    display: block;
+    font-size: 0.84rem;
+    color: var(--ink-soft);
+    font-weight: 600;
+    margin-bottom: 0.7rem;
+    line-height: 1.45;
+}
+
+.share-link-box {
+    display: flex;
+    gap: 0.45rem;
+    align-items: center;
+}
+
+.share-link-input {
+    flex: 1;
+    min-width: 0;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: 0.55rem 0.7rem;
+    font-size: 0.82rem;
+    color: var(--ink-soft);
+    background: var(--paper);
+}
+
+.share-stats {
+    margin-top: 0.6rem;
+    font-size: 0.82rem;
+    color: var(--ink-soft);
+    font-weight: 600;
+}
+
+/* ---------- responsive ---------- */
+
+@media (max-width: 640px) {
+    .topbar {
+        padding: 0.75rem 1rem;
+        flex-wrap: wrap;
+    }
+
+    .page {
+        padding: 2rem 1rem 4rem;
+    }
+
+    .roadmap-strip {
+        padding: 1.15rem 1.15rem 1.25rem;
+    }
+
+    .strip-members {
+        margin-left: 0;
+    }
+}
+
+/* ---- roadmap.css (copied from current Kivo) ---- */
+/* Roadmap page — tasks as a grouped status ledger instead of a kanban board.
+   Also used by the public read-only view (view.html). */
+
+.page {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 2.5rem 1.5rem 5rem;
+}
+
+.board-title {
+    min-width: 0;
+}
+
+.board-title h1 {
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.roadmap-meta {
+    font-size: 0.84rem;
+    color: var(--ink-soft);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 48ch;
+}
+
+.read-only-badge {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--deep);
+    background: var(--baby-soft);
+    padding: 0.35rem 0.85rem;
+    border-radius: 999px;
+    white-space: nowrap;
+}
+
+/* ---------- status sections ---------- */
+
+.status-section {
+    margin-bottom: 2.4rem;
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.8rem;
+    padding-left: 0.2rem;
+}
+
+.section-header h2 {
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+
+.section-dot {
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+}
+
+.section-dot.planned { background: var(--st-planned); }
+.section-dot.in_progress { background: var(--st-progress); }
+.section-dot.finished { background: var(--st-finished); }
+
+.section-count {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--ink-soft);
+    background: var(--cloud);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 0.12rem 0.6rem;
+}
+
+.section-empty {
+    color: var(--ink-soft);
+    font-size: 0.9rem;
+    padding: 1rem 1.2rem;
+    background: rgba(255, 255, 255, 0.55);
+    border: 1px dashed var(--line);
+    border-radius: var(--radius);
+}
+
+/* ---------- task rows ---------- */
+
+.task-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+}
+
+.task-row {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    background: var(--cloud);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    transition: transform 0.14s ease, box-shadow 0.14s ease, border-color 0.14s;
+    box-shadow: 0 3px 10px rgba(27, 111, 184, 0.05);
+}
+
+.task-row:hover {
+    transform: translateY(-1px);
+    border-color: var(--baby);
+    box-shadow: var(--shadow);
+}
+
+.task-row .task-name {
+    font-weight: 600;
+    font-size: 0.98rem;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.task-row.finished .task-name {
+    color: var(--ink-soft);
+}
+
+.task-row .task-tags {
+    display: flex;
+    gap: 0.35rem;
+    flex-wrap: wrap;
+    min-width: 0;
+}
+
+.task-row .row-right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    flex-shrink: 0;
+}
+
+/* status pill acts as a quick-change button */
+.task-row .status-pill {
+    cursor: pointer;
+    transition: filter 0.12s;
+}
+
+.task-row .status-pill:hover {
+    filter: brightness(0.95);
+}
+
+.status-menu {
+    min-width: 150px;
+}
+
+/* ---------- assignee picker in the task modal ---------- */
+
+.assignee-picker {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+}
+
+.assignee-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    border: 1px solid var(--line);
+    background: var(--cloud);
+    border-radius: 999px;
+    padding: 0.3rem 0.85rem 0.3rem 0.35rem;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--ink-soft);
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.14s, border-color 0.14s, color 0.14s;
+}
+
+.assignee-chip input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.assignee-chip .avatar {
+    width: 24px;
+    height: 24px;
+    font-size: 0.7rem;
+}
+
+.assignee-chip.selected {
+    background: var(--baby-soft);
+    border-color: var(--sky);
+    color: var(--deep);
+}
+
+.assignee-hint {
+    font-size: 0.84rem;
+    color: var(--ink-soft);
+}
+
+/* ---------- public view extras ---------- */
+
+.public-unavailable {
+    text-align: center;
+    padding: 5rem 1rem;
+    color: var(--ink-soft);
+}
+
+.public-unavailable h2 {
+    font-family: var(--font-display);
+    color: var(--ink);
+    margin-bottom: 0.5rem;
+}
+
+/* ---------- responsive ---------- */
+
+@media (max-width: 640px) {
+    .topbar {
+        padding: 0.75rem 1rem;
+    }
+
+    .page {
+        padding: 1.75rem 1rem 4rem;
+    }
+
+    .task-row {
+        flex-wrap: wrap;
+    }
+
+    .task-row .row-right {
+        width: 100%;
+        margin-left: 0;
+        justify-content: space-between;
+    }
+}
+
+/* ============================================================
+   Kivo Office additions. Same tokens and shapes as the files above.
+   ============================================================ */
+.page { max-width: 880px; margin: 0 auto; padding: 3rem 1.5rem 5rem; }
+.page.wide { max-width: 1240px; }
+.page.narrow { max-width: 640px; }
+a { text-underline-offset: 2px; }
+.brand-sub { font-weight: 600; color: var(--ink-soft); font-size: 1.05rem; letter-spacing: 0; }
+.nav { display: flex; gap: 0.2rem; margin-left: 0.4rem; }
+.navlink { padding: 0.4rem 0.85rem; border-radius: 999px; text-decoration: none; color: var(--ink-soft); font-weight: 600; font-size: 0.9rem; white-space: nowrap; transition: background 0.15s, color 0.15s; }
+.navlink:hover { background: var(--baby-soft); color: var(--ink); }
+.navlink.on { background: var(--baby-soft); color: var(--deep); }
+a.user-chip { text-decoration: none; transition: background 0.15s; }
+a.user-chip:hover { background: var(--baby-soft); }
+.chip-name { overflow: hidden; text-overflow: ellipsis; }
+.topbar-right { flex-wrap: wrap; justify-content: flex-end; }
+.board-title { min-width: 0; }
+
+.avatar { position: relative; background-size: cover; background-position: center; }
+.avatar.has-img { color: transparent; }
+.avatar.more { background: var(--baby-soft); color: var(--deep); }
+.avatar-xl { width: 84px; height: 84px; font-size: 2rem; }
+.presence { position: absolute; right: -2px; bottom: -2px; width: 11px; height: 11px; border-radius: 50%; border: 2px solid var(--cloud); }
+.avatar-xl .presence { width: 18px; height: 18px; border-width: 3px; }
+.p-available { background: var(--st-finished); }
+.p-busy { background: var(--danger); }
+.p-away { background: var(--st-progress); }
+.presence-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 0.4rem; }
+.presence-line { display: inline; }
+
+.page-head.with-actions { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+.head-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
+.head-actions.left { margin-top: 0.8rem; }
+.push-right { margin-left: auto; }
+.roadmap-desc { color: var(--ink-soft); margin-bottom: 1.2rem; max-width: 70ch; line-height: 1.55; }
+.info-note { background: var(--baby-soft); color: var(--deep); border-radius: var(--radius-sm); padding: 0.65rem 0.95rem; font-size: 0.88rem; font-weight: 600; margin-bottom: 1.2rem; line-height: 1.45; }
+.modal-body .info-note { margin: 0.4rem 0 1rem; }
+.notice { margin-top: 1rem; background: var(--st-progress-bg); color: #a86d14; border-radius: var(--radius-sm); padding: 0.6rem 0.9rem; font-size: 0.85rem; font-weight: 600; }
+.mine { color: var(--deep); }
+a.roadmap-strip { color: inherit; text-decoration: none; }
+.roadmap-strip .strip-title span { overflow-wrap: anywhere; }
+
+/* IT dashboard */
+.it-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 2rem; align-items: start; }
+.col-head { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 1rem; }
+.col-head h2 { font-family: var(--font-display); font-size: 1.3rem; font-weight: 700; letter-spacing: -0.01em; }
+.it-roadmap-actions { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.5rem; }
+.it-roadmap + .it-roadmap { margin-top: 0.4rem; }
+.mgr-list { display: flex; flex-direction: column; gap: 0.9rem; }
+.mgr-card { background: var(--cloud); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+.mgr-top { display: flex; align-items: center; gap: 0.6rem; padding: 0.7rem 0.9rem; flex-wrap: wrap; }
+.mgr-head { display: flex; align-items: center; gap: 0.7rem; flex: 1; min-width: 200px; border: none; background: transparent; text-align: left; padding: 0.2rem; border-radius: var(--radius-sm); color: var(--ink); }
+.mgr-head:hover { background: var(--paper); }
+.chev { display: inline-block; transition: transform 0.15s; color: var(--ink-soft); width: 1ch; }
+.mgr-head.open .chev { transform: rotate(90deg); }
+.mgr-actions, .person-actions { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+.mgr-panel { border-top: 1px solid var(--line); background: var(--paper); padding: 0.4rem 0.9rem 0.7rem; }
+[hidden] { display: none !important; }
+.mgr-panel[hidden] { display: none; }
+.mgr-panel.static { background: var(--cloud); border-top: none; padding: 0.4rem 1rem 0.7rem; }
+.person-row { display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 0; flex-wrap: wrap; }
+.person-row + .person-row { border-top: 1px solid var(--line); }
+.person-main { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.person-name { font-weight: 700; font-size: 0.97rem; color: var(--ink); text-decoration: none; overflow-wrap: anywhere; }
+a.person-name:hover { color: var(--deep); text-decoration: underline; }
+.person-sub { color: var(--ink-soft); font-size: 0.84rem; overflow-wrap: anywhere; }
+
+/* tasks */
+.board { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.1rem; align-items: start; }
+.board .status-section { margin-bottom: 0; background: rgba(226, 240, 251, 0.45); border-radius: var(--radius); padding: 0.9rem 0.8rem 1rem; }
+.board .task-row { flex-wrap: wrap; }
+.board .task-row .task-name { white-space: normal; overflow-wrap: anywhere; flex-basis: 100%; order: 2; }
+.board .task-row .menu-wrap, .board .task-row > .status-pill { order: 1; }
+.board .task-row .task-tags { order: 3; }
+.board .task-row .row-right { order: 4; width: 100%; margin-left: 0; justify-content: space-between; flex-wrap: wrap; }
+.status-section.drop { outline: 3px dashed var(--sky); outline-offset: 4px; border-radius: var(--radius); }
+.task-row[draggable="true"] { cursor: grab; }
+.list-view .task-row .task-name { flex: 1 1 8ch; }
+.row-meta { font-size: 0.8rem; color: var(--ink-soft); font-weight: 600; white-space: nowrap; }
+.row-meta.unassigned { font-style: italic; }
+.you-badge, .ro-badge { font-size: 0.72rem; font-weight: 700; padding: 0.14rem 0.55rem; border-radius: 999px; white-space: nowrap; }
+.you-badge { background: var(--baby-soft); color: var(--deep); }
+.ro-badge { color: var(--ink-soft); border: 1px solid var(--line); }
+.task-row .menu-wrap .menu { left: 0; right: auto; }
+.task-row:focus-visible { outline: 3px solid rgba(74, 159, 222, 0.55); outline-offset: 2px; }
+.view-seg { display: inline-flex; background: var(--baby-soft); border-radius: 999px; padding: 3px; gap: 2px; }
+.view-seg button { border: none; background: transparent; border-radius: 999px; padding: 0.3rem 0.8rem; font-size: 0.82rem; font-weight: 700; color: var(--ink-soft); }
+.view-seg button.active { background: var(--cloud); color: var(--deep); box-shadow: 0 2px 8px rgba(27, 111, 184, 0.18); }
+.modal-card { max-width: 560px; }
+.modal-card.modal-small { max-width: 420px; }
+.assignee-chip.static { cursor: default; }
+.assignee-chip { position: relative; }
+.assignee-chip:focus-within { outline: 3px solid rgba(74, 159, 222, 0.55); outline-offset: 2px; }
+.radio-row { display: flex; gap: 0.65rem; align-items: flex-start; padding: 0.55rem 0.7rem; border: 1px solid var(--line); border-radius: var(--radius-sm); margin-bottom: 0.4rem; cursor: pointer; font-size: 0.92rem; }
+.radio-row input { margin-top: 0.3rem; accent-color: var(--deep); }
+.radio-row span { display: flex; flex-direction: column; }
+.radio-row .radio-sub { color: var(--ink-soft); font-size: 0.84rem; }
+.ro-block { display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap; margin-bottom: 0.7rem; }
+.ro-title { font-family: var(--font-display); font-size: 1.15rem; overflow-wrap: anywhere; }
+.ro-desc { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.55; margin-bottom: 0.8rem; }
+.muted { color: var(--ink-soft); }
+.ro-tags { margin-bottom: 0.8rem; }
+.task-name, .strip-desc, .person-name { overflow-wrap: anywhere; }
+.comments-block { border-top: 1px solid var(--line); padding-top: 1rem; margin-top: 0.4rem; }
+.block-title { font-family: var(--font-display); font-size: 1rem; margin-bottom: 0.6rem; }
+.comments { display: flex; flex-direction: column; gap: 0.7rem; max-height: 220px; overflow-y: auto; margin-bottom: 0.8rem; padding-right: 0.2rem; }
+.comment { display: flex; gap: 0.6rem; }
+.comment-main { min-width: 0; background: var(--paper); border-radius: var(--radius-sm); padding: 0.5rem 0.8rem; flex: 1; }
+.comment-head { font-size: 0.84rem; }
+.comment-head time { color: var(--ink-soft); }
+.comment-main p { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 0.93rem; line-height: 1.45; }
+.comment-form { display: flex; gap: 0.5rem; align-items: flex-end; }
+.comment-form textarea { flex: 1; border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 0.55rem 0.8rem; font-size: 0.93rem; resize: vertical; min-width: 0; }
+.comment-form textarea:focus { outline: none; border-color: var(--sky); box-shadow: 0 0 0 4px rgba(74, 159, 222, 0.15); }
+
+/* logs */
+.log-tools { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 0.8rem; flex-wrap: wrap; }
+.log-search { flex: 1; min-width: 160px; max-width: 320px; border: 1px solid var(--line); border-radius: 999px; padding: 0.5rem 1rem; font-size: 0.9rem; color: var(--ink); }
+.log-search:focus { outline: none; border-color: var(--sky); box-shadow: 0 0 0 4px rgba(74, 159, 222, 0.15); }
+.log-count { font-size: 0.82rem; color: var(--ink-soft); font-weight: 600; }
+.log-list { list-style: none; }
+.log-row { display: grid; grid-template-columns: 8.5rem 6.2rem minmax(0, 1fr); gap: 0.75rem; align-items: baseline; padding: 0.6rem 0; border-top: 1px solid var(--line); font-size: 0.92rem; line-height: 1.45; }
+.log-row[hidden] { display: none; }
+.log-time { color: var(--ink-soft); font-size: 0.82rem; font-weight: 600; white-space: nowrap; }
+.log-chip { justify-self: start; }
+.log-text { overflow-wrap: anywhere; }
+.card-title.sp { margin-top: 1.8rem; }
+.settings-card { padding: 1.4rem 1.6rem; }
+.profile-head { display: flex; gap: 1.2rem; align-items: center; flex-wrap: wrap; }
+.profile-main { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 0.3rem; }
+.profile-main .account-name { margin: 0; overflow-wrap: anywhere; }
+.profile-pic-row { display: flex; align-items: center; gap: 1.2rem; margin-bottom: 1.3rem; flex-wrap: wrap; }
+.profile-pic-row .card-note { margin: 0.6rem 0 0; }
+.sr-file { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.profile-pic-row label.btn-ghost { cursor: pointer; }
+.presence-seg button { display: inline-flex; align-items: center; justify-content: center; gap: 0.2rem; }
+
+/* login */
+.auth-card.wide { max-width: 480px; }
+.auth-logo .brand-sub { font-size: 1.2rem; }
+.demo-box { margin-top: 1.6rem; border-top: 1px solid var(--line); padding-top: 1.3rem; text-align: left; }
+.demo-title { font-family: var(--font-display); font-weight: 700; font-size: 1.05rem; }
+.demo-note { color: var(--ink-soft); font-size: 0.85rem; margin: 0.2rem 0 1rem; line-height: 1.45; }
+code { background: var(--baby-soft); color: var(--deep); padding: 0.05rem 0.4rem; border-radius: 6px; font-size: 0.9em; }
+.switch-group { margin-bottom: 0.9rem; }
+.switch-label { font-size: 0.78rem; font-weight: 700; color: var(--ink-soft); margin-bottom: 0.4rem; }
+.switch-list { display: flex; flex-wrap: wrap; gap: 0.45rem; }
+.switch-btn { display: inline-flex; align-items: center; gap: 0.5rem; border: 1px solid var(--line); background: var(--cloud); border-radius: 999px; padding: 0.3rem 0.9rem 0.3rem 0.3rem; font-size: 0.88rem; font-weight: 600; color: var(--ink); transition: background 0.15s, border-color 0.15s; }
+.switch-btn:hover { background: var(--baby-soft); border-color: var(--baby); }
+.linklike { border: none; background: none; color: var(--deep); font-weight: 600; font-size: inherit; text-decoration: underline; padding: 0.2rem; }
+
+/* toast */
+.toast { position: fixed; left: 50%; bottom: 1.5rem; transform: translate(-50%, 20px); background: var(--ink); color: #fff; padding: 0.7rem 1.2rem; border-radius: 999px; font-weight: 600; font-size: 0.92rem; box-shadow: var(--shadow-lift); opacity: 0; pointer-events: none; transition: opacity 0.18s, transform 0.18s; z-index: 200; max-width: calc(100vw - 2rem); text-align: center; }
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+.toast.err { background: var(--danger); }
+@media (prefers-reduced-motion: reduce) { .toast, .chev { transition: none; } }
+
+@media (max-width: 1000px) {
+  .it-grid { grid-template-columns: minmax(0, 1fr); }
+  .board { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 640px) {
+  .topbar { flex-wrap: wrap; padding: 0.7rem 1rem; }
+  .topbar-left { flex-wrap: wrap; }
+  .nav { margin-left: 0; flex-wrap: wrap; }
+  .page { padding: 1.75rem 1rem 4rem; }
+  .log-row { grid-template-columns: minmax(0, 1fr); gap: 0.25rem; }
+  .auth-card { padding: 2rem 1.25rem 1.5rem; }
+  .settings-card { padding: 1.2rem 1rem; }
+  .board-title h1 { white-space: normal; }
+  .roadmap-meta { white-space: normal; max-width: none; }
+  .chip-name { max-width: 9ch; }
+  .comment-form { flex-direction: column; align-items: stretch; }
+  .task-row .task-name { white-space: normal; flex: 1 1 8ch; overflow-wrap: anywhere; }
+}
+
+
+/* ---- round 2: invites, deactivation, drag ---- */
+.avatar.inactive { filter: grayscale(1); opacity: 0.55; }
+.person-row.off .person-name, .mgr-card.off .person-name { color: var(--ink-soft); }
+.mgr-card.off { background: rgba(255, 255, 255, 0.7); }
+.badge-off, .badge-pending { display: inline-block; font-size: 0.74rem; font-weight: 700; padding: 0.1rem 0.55rem; border-radius: 999px; }
+.badge-off { background: #fdeaea; color: #b04a44; }
+.badge-pending { background: var(--st-progress-bg); color: #a86d14; }
+.col-head.sp { margin-top: 2rem; }
+.deleted-row { display: flex; align-items: center; gap: 0.8rem; padding: 0.7rem 1rem; border: 1px dashed var(--line); border-radius: var(--radius-sm); background: rgba(255, 255, 255, 0.55); margin-bottom: 0.5rem; flex-wrap: wrap; }
+.log-note { font-size: 0.84rem; color: var(--ink-soft); background: var(--baby-soft); border-radius: var(--radius-sm); padding: 0.5rem 0.8rem; margin-bottom: 0.9rem; }
+.copy-box { display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.6rem; }
+.copy-box .share-link-input { flex: 1; min-width: 0; padding: 0.65rem 0.8rem; font-size: 0.85rem; }
+.info-note.flag, .row-meta.flagged { color: #a86d14; }
+.info-note.flag { background: var(--st-progress-bg); }
+.row-meta.flagged { font-style: normal; font-weight: 700; }
+.head-actions.left0 { margin-top: 0.2rem; }
+.menu-item:disabled { color: #9db8d2; cursor: default; }
+.menu-item:disabled:hover { background: transparent; }
+.status-seg button:disabled { opacity: 0.4; cursor: not-allowed; }
+.switch-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+a.switch-btn { text-decoration: none; padding-left: 0.9rem; }
+.auth-card .auth-subtitle + .notice { margin-bottom: 1rem; text-align: left; }
+.form-group select { border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 0.7rem 0.9rem; background: var(--cloud); font-size: 0.95rem; color: var(--ink); }
+
+/* drag and drop */
+.status-section { position: relative; }
+[data-ctx] { -webkit-touch-callout: none; }
+.task-row.can-drag { cursor: grab; touch-action: manipulation; -webkit-touch-callout: none; }
+.task-row.drag-src { opacity: 0.35; }
+body.dragging { user-select: none; -webkit-user-select: none; cursor: grabbing; }
+.drag-ghost { position: fixed; left: 0; top: 0; z-index: 300; pointer-events: none; margin: 0; box-shadow: var(--shadow-lift); border-color: var(--sky); transform-origin: 0 0; opacity: 0.95; }
+.status-section.drop { outline: 3px dashed var(--sky); outline-offset: 4px; border-radius: var(--radius); background: rgba(191, 224, 247, 0.45); }
+.status-section.drop-no { outline: 3px dashed var(--danger); outline-offset: 4px; border-radius: var(--radius); background: rgba(212, 84, 74, 0.06); }
+.status-section.drop::after, .status-section.drop-no::after { position: absolute; top: 0.5rem; right: 0.7rem; font-size: 0.78rem; font-weight: 700; padding: 0.15rem 0.65rem; border-radius: 999px; color: #fff; }
+.status-section.drop::after { content: 'Drop to move here'; background: var(--deep); }
+.status-section.drop-no::after { content: 'Can\2019t move there'; background: var(--danger); }
+@media (max-width: 640px) {
+  .copy-box { flex-direction: column; align-items: stretch; }
+  .mgr-actions, .person-actions { width: 100%; }
+}
+
+.pw-row { grid-template-columns: 8.5rem 13rem minmax(0, 1fr); }
+@media (max-width: 640px) { .pw-row { grid-template-columns: minmax(0, 1fr); } }
+
+.topbar.has-banner { flex-wrap: wrap; }
+.storage-banner { flex: 1 1 100%; background: var(--st-progress-bg); color: #a86d14; font-weight: 700; font-size: 0.85rem; padding: 0.45rem 0.9rem; border-radius: var(--radius-sm); }
+
+
+/* ---- round 4: archive, context menu, comment delete, icon buttons ---- */
+.icon-link { padding: 0; line-height: 0; }
+.icon-link svg, .btn-close svg { display: block; }
+.btn-close { display: inline-flex; align-items: center; justify-content: center; padding: 0; line-height: 0; flex-shrink: 0; }
+
+.archived-pill { display: inline-block; font-size: 0.72rem; font-weight: 700; padding: 0.14rem 0.6rem; border-radius: 999px; background: var(--baby-soft); color: var(--ink-soft); border: 1px solid var(--line); vertical-align: middle; }
+.roadmap-strip.archived { background: rgba(255, 255, 255, 0.7); box-shadow: none; }
+.archived-block { margin-top: 2rem; }
+.archived-toggle { display: inline-flex; align-items: center; gap: 0.5rem; border: none; background: transparent; font-family: var(--font-display); font-size: 1.1rem; font-weight: 700; color: var(--ink); padding: 0.3rem 0.5rem 0.3rem 0.2rem; border-radius: var(--radius-sm); margin-bottom: 0.8rem; }
+.archived-toggle:hover { background: var(--baby-soft); }
+.archived-toggle .chev { transition: transform 0.15s; }
+.archived-toggle.open .chev { transform: rotate(90deg); }
+.archived-banner { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; background: var(--cloud); border: 1px dashed var(--sky); color: var(--ink); border-radius: var(--radius-sm); padding: 0.75rem 1rem; margin-bottom: 1.2rem; font-size: 0.92rem; line-height: 1.45; }
+
+.comment-head { display: flex; align-items: baseline; gap: 0.2rem; flex-wrap: wrap; }
+.comment-del { margin-left: auto; align-self: center; display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; padding: 0; border: none; border-radius: 50%; background: transparent; color: var(--ink-soft); line-height: 0; transition: background 0.15s, color 0.15s; }
+.comment-del:hover { background: rgba(212, 84, 74, 0.1); color: var(--danger); }
+
+/* right-click / long-press menu */
+.ctx-menu { position: fixed; z-index: 400; min-width: 190px; max-width: min(280px, calc(100vw - 16px)); max-height: calc(100vh - 16px); overflow-y: auto; background: var(--cloud); border: 1px solid var(--line); border-radius: var(--radius-sm); box-shadow: var(--shadow-lift); padding: 0.35rem; animation: modal-in 0.12s ease-out; }
+.ctx-menu:focus { outline: none; }
+.ctx-item { display: block; width: 100%; text-align: left; border: none; background: transparent; border-radius: 8px; padding: 0.55rem 0.75rem; font-size: 0.9rem; font-weight: 600; color: var(--ink); }
+.ctx-item:hover, .ctx-item:focus-visible { background: var(--baby-soft); outline: none; }
+.ctx-item.danger { color: var(--danger); }
+.ctx-item.danger:hover, .ctx-item.danger:focus-visible { background: rgba(212, 84, 74, 0.08); }
+.ctx-sep { height: 1px; background: var(--line); margin: 0.3rem 0.2rem; }
+.ctx-empty { padding: 0.55rem 0.75rem; font-size: 0.88rem; color: var(--ink-soft); }
+@media (prefers-reduced-motion: reduce) { .ctx-menu { animation: none; } .archived-toggle .chev { transition: none; } }
+
+    </style>
+</head>
+
+<body class="sky-body">
+    <div id="app"></div>
+    <noscript>Kivo Office needs JavaScript.</noscript>
+    <script>
+'use strict';
+/* ============================================================
+   CORE: data, permissions, audit log. No DOM in here.
+   Every rule is enforced in these functions (they throw), the UI
+   only hides buttons on top of that.
+   ============================================================ */
+const Core = (() => {
+  const KEY = 'kivo-office-v1';
+  const SKEY = 'kivo-office-session-v1';
+  const STATUSES = ['planned', 'in_progress', 'finished'];
+  const STATUS_LABEL = { planned: 'Planned', in_progress: 'In progress', finished: 'Finished' };
+  const ROLE_LABEL = { it: 'IT admin', manager: 'Manager', member: 'Team member' };
+  const PRESENCE = ['available', 'busy', 'away'];
+  const PRESENCE_LABEL = { available: 'Available', busy: 'Busy', away: 'Away' };
+  const DEMO_PASSWORD = 'kivo123';
+
+  // ---------- storage (never throws; falls back to memory) ----------
+  const mem = {};
+  let storageOk = true;
+  function sGet(k) {
+    if (Object.prototype.hasOwnProperty.call(mem, k)) return mem[k];
+    try { return localStorage.getItem(k); } catch (e) { storageOk = false; return null; }
+  }
+  function sSet(k, v) {
+    try { localStorage.setItem(k, v); delete mem[k]; } catch (e) { storageOk = false; mem[k] = v; }
+  }
+  function sDel(k) {
+    delete mem[k];
+    try { localStorage.removeItem(k); } catch (e) { storageOk = false; }
+  }
+
+  // ---------- hashing ----------
+  const hex = (b) => Array.from(b, (x) => x.toString(16).padStart(2, '0')).join('');
+  const K256 = [0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2];
+  // Used only when SubtleCrypto is unavailable (e.g. an insecure context).
+  function sha256Fallback(bytes) {
+    const rr = (x, n) => (x >>> n) | (x << (32 - n));
+    const l = bytes.length, bitLen = l * 8;
+    const total = (((l + 9 + 63) >> 6) << 6);
+    const m = new Uint8Array(total);
+    m.set(bytes); m[l] = 0x80;
+    const dv = new DataView(m.buffer);
+    dv.setUint32(total - 8, Math.floor(bitLen / 4294967296));
+    dv.setUint32(total - 4, bitLen >>> 0);
+    const H = [0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];
+    const w = new Array(64);
+    for (let o = 0; o < total; o += 64) {
+      for (let i = 0; i < 16; i++) w[i] = dv.getUint32(o + i * 4);
+      for (let i = 16; i < 64; i++) {
+        const s0 = rr(w[i-15], 7) ^ rr(w[i-15], 18) ^ (w[i-15] >>> 3);
+        const s1 = rr(w[i-2], 17) ^ rr(w[i-2], 19) ^ (w[i-2] >>> 10);
+        w[i] = (w[i-16] + s0 + w[i-7] + s1) | 0;
+      }
+      let [a, b, c, d, e, f, g, hh] = H;
+      for (let i = 0; i < 64; i++) {
+        const S1 = rr(e, 6) ^ rr(e, 11) ^ rr(e, 25);
+        const ch = (e & f) ^ (~e & g);
+        const t1 = (hh + S1 + ch + K256[i] + w[i]) | 0;
+        const S0 = rr(a, 2) ^ rr(a, 13) ^ rr(a, 22);
+        const mj = (a & b) ^ (a & c) ^ (b & c);
+        const t2 = (S0 + mj) | 0;
+        hh = g; g = f; f = e; e = (d + t1) | 0; d = c; c = b; b = a; a = (t1 + t2) | 0;
+      }
+      H[0] = (H[0] + a) | 0; H[1] = (H[1] + b) | 0; H[2] = (H[2] + c) | 0; H[3] = (H[3] + d) | 0;
+      H[4] = (H[4] + e) | 0; H[5] = (H[5] + f) | 0; H[6] = (H[6] + g) | 0; H[7] = (H[7] + hh) | 0;
+    }
+    const out = new Uint8Array(32), odv = new DataView(out.buffer);
+    H.forEach((v, i) => odv.setUint32(i * 4, v >>> 0));
+    return out;
+  }
+  async function sha256(str) {
+    const bytes = new TextEncoder().encode(str);
+    try {
+      if (globalThis.crypto && globalThis.crypto.subtle) {
+        return hex(new Uint8Array(await globalThis.crypto.subtle.digest('SHA-256', bytes)));
+      }
+    } catch (e) { /* fall through */ }
+    return hex(sha256Fallback(bytes));
+  }
+  function randSalt() {
+    const b = new Uint8Array(16);
+    if (globalThis.crypto && globalThis.crypto.getRandomValues) globalThis.crypto.getRandomValues(b);
+    else for (let i = 0; i < 16; i++) b[i] = Math.floor(Math.random() * 256);
+    return hex(b);
+  }
+
+  // ---------- state ----------
+  let db = null;
+  let session = null;
+  let clock = null; // set only while seeding so demo history has believable times
+  let counter = 0;
+  const DAY = 864e5;
+  const INVITE_TTL = 48 * 3600 * 1000;
+  // Fixed tokens so the demo login screen can link to them. Real invites use random tokens.
+  const DEMO_INVITE_TOKEN = 'demo-invite-priya-4f9c1a7e2b6d03a5';
+  const DEMO_EXPIRED_TOKEN = 'demo-invite-dev-expired-8d3b5c01e7f2';
+  const now = () => (clock !== null ? clock : Date.now());
+  const uid = (p) => p + '_' + (++counter).toString(36) + Math.random().toString(36).slice(2, 8);
+  const clean = (s, max) => String(s == null ? '' : s).replace(/\s+/g, ' ').trim().slice(0, max);
+  const cleanLong = (s, max) => String(s == null ? '' : s).replace(/\r/g, '').trim().slice(0, max);
+  const need = (cond, msg) => { if (!cond) throw new Error(msg || 'You are not allowed to do that.'); };
+  const isActive = (u) => !!u && u.active !== false;
+
+  function save() { sSet(KEY, JSON.stringify(db)); }
+  function validShape(d) {
+    const obj = (x) => x && typeof x === 'object';
+    const str = (x) => typeof x === 'string';
+    return d.users.length > 0
+      && d.users.every((u) => obj(u) && ['id', 'role', 'username', 'name', 'salt', 'hash'].every((k) => str(u[k])) && ROLE_LABEL[u.role]
+        && (u.active === undefined || typeof u.active === 'boolean'))
+      && d.roadmaps.every((r) => obj(r) && str(r.id) && str(r.managerId) && Array.isArray(r.memberIds) && Array.isArray(r.creators)
+        && (r.archivedAt == null || Number.isFinite(r.archivedAt)))
+      && d.tasks.every((t) => obj(t) && str(t.id) && str(t.roadmapId) && Array.isArray(t.assignees))
+      && d.comments.every((c) => obj(c) && str(c.id))
+      && d.logs.every((l) => obj(l) && str(l.id) && Number.isFinite(new Date(l.at).getTime()))
+      && d.pwlog.every((p) => obj(p) && str(p.id) && str(p.userId))
+      && (d.invites === undefined || (Array.isArray(d.invites) && d.invites.every((i) => obj(i) && str(i.id) && str(i.userId) && str(i.tokenHash) && Number.isFinite(i.expiresAt))));
+  }
+  // Older saves lack the newer fields; fill defaults so they keep working.
+  function migrate(d) {
+    if (!Array.isArray(d.invites)) d.invites = [];
+    d.users.forEach((u) => { if (u.active === undefined) u.active = true; });
+    d.roadmaps.forEach((r) => { if (!r.creatorMode) r.creatorMode = 'manager'; });
+    d.tasks.forEach((t) => { if (!Array.isArray(t.flags)) t.flags = []; });
+  }
+  function load() {
+    const raw = sGet(KEY);
+    if (!raw) return false;
+    try {
+      const d = JSON.parse(raw);
+      if (d && d.v === 1 && ['users', 'roadmaps', 'tasks', 'comments', 'logs', 'pwlog'].every((k) => Array.isArray(d[k])) && validShape(d)) {
+        migrate(d);
+        db = d;
+        const s = sGet(SKEY);
+        session = s && d.users.some((u) => u.id === s) ? s : null;
+        return true;
+      }
+    } catch (e) { /* corrupt, reseed */ }
+    return false;
+  }
+  function setSession(id) { session = id; if (id) sSet(SKEY, id); else sDel(SKEY); }
+
+  const user = (id) => (db ? db.users.find((u) => u.id === id) || null : null);
+  const roadmapById = (id) => (db ? db.roadmaps.find((r) => r.id === id) || null : null);
+  const taskById = (id) => (db ? db.tasks.find((t) => t.id === id) || null : null);
+  // A deactivated account loses its session the moment anything looks at it.
+  function me() {
+    if (!session) return null;
+    const u = user(session);
+    if (!u || !isActive(u)) { session = null; sDel(SKEY); return null; }
+    return u;
+  }
+  function cur() {
+    const u = me();
+    need(u, 'Please sign in.');
+    return u;
+  }
+  const dn = (u) => (u ? (isActive(u) ? u.name : u.name + ' (deactivated)') : 'Unknown');
+
+  // ---------- audit log: append only ----------
+  // log() is the only writer. Nothing in this file edits, reorders or removes entries
+  // (only resetDemo replaces the whole database).
+  function log(actor, action, text, extra) {
+    db.logs.push(Object.assign({
+      id: uid('l'), at: now(), actorId: actor ? actor.id : null, action, text,
+      roadmapId: null, subjectId: null, taskId: null,
+    }, extra || {}));
+  }
+
+  // ---------- permission rules ----------
+  function canViewRoadmap(u, r) {
+    if (!isActive(u) || !r || r.deletedAt) return false;
+    if (u.role === 'it') return true;
+    return r.managerId === u.id || r.memberIds.includes(u.id);
+  }
+  function isOwner(u, r) { return isActive(u) && !!r && !r.deletedAt && u.role === 'manager' && r.managerId === u.id; }
+  // Who may create tasks: the owner always; everyone / chosen handlers according to the roadmap setting.
+  const ARCHIVED_MSG = 'This roadmap is archived and read-only. Unarchive it first.';
+  const isArchived = (r) => !!r && !!r.archivedAt;
+  function isCreator(u, r) {
+    if (!canViewRoadmap(u, r) || u.role === 'it' || isArchived(r)) return false;
+    if (isOwner(u, r)) return true;
+    if (r.creatorMode === 'everyone') return true;
+    return r.creatorMode === 'chosen' && r.creators.includes(u.id);
+  }
+  // Changing who a task is assigned to: owner, chosen handlers, or the person who created that task.
+  function canAssign(u, r, t) {
+    if (!canViewRoadmap(u, r) || u.role === 'it' || isArchived(r)) return false;
+    if (isOwner(u, r)) return true;
+    if (r.creatorMode === 'chosen' && r.creators.includes(u.id)) return true;
+    return !!t && t.createdBy === u.id && isCreator(u, r);
+  }
+  function canEditTask(u, t) {
+    const r = t && roadmapById(t.roadmapId);
+    return !!(u && t && r && canViewRoadmap(u, r) && !isArchived(r) && t.assignees.includes(u.id));
+  }
+  // Status only moves forward (order of STATUSES). Assignees move it forward; only the owner may go back.
+  function canMove(u, t, to) {
+    const r = t && roadmapById(t.roadmapId);
+    if (!r || !canViewRoadmap(u, r)) return { ok: false, reason: 'You cannot see this task.' };
+    if (isArchived(r)) return { ok: false, reason: ARCHIVED_MSG };
+    const a = STATUSES.indexOf(t.status), b = STATUSES.indexOf(to);
+    if (b < 0) return { ok: false, reason: 'Unknown status.' };
+    if (a === b) return { ok: false, reason: 'The task is already there.' };
+    if (b > a) return canEditTask(u, t) ? { ok: true } : { ok: false, reason: 'Only the people assigned to this task can change its status.' };
+    return isOwner(u, r) ? { ok: true, override: true } : { ok: false, reason: 'Tasks only move forward. Only the roadmap owner can move a task back.' };
+  }
+  function assignable(r) {
+    return Array.from(new Set([r.managerId].concat(r.memberIds))).filter((id) => isActive(user(id)));
+  }
+  function canManageRoadmap(u, r) { return isOwner(u, r); }
+  function canSeeRoadmapLog(u, r) { return !!(isActive(u) && r && (u.role === 'it' || isOwner(u, r))); }
+  function sharesRoadmap(a, b) {
+    return db.roadmaps.some((r) => {
+      if (r.deletedAt) return false;
+      const ids = [r.managerId].concat(r.memberIds);
+      return ids.includes(a.id) && ids.includes(b.id);
+    });
+  }
+  function canSeeProfile(u, t) {
+    if (!isActive(u) || !t) return false;
+    if (u.id === t.id || u.role === 'it') return true;
+    if (u.role === 'manager' && t.createdBy === u.id) return true;
+    return sharesRoadmap(u, t);
+  }
+  function canSeeAccountLog(u, t) {
+    if (!isActive(u) || !t) return false;
+    return u.id === t.id || u.role === 'it' || (u.role === 'manager' && t.createdBy === u.id);
+  }
+  // Issue an invite / reset link for another account.
+  function canResetPassword(u, t) {
+    if (!isActive(u) || !isActive(t) || u.id === t.id) return false;
+    if (u.role === 'it') return true;
+    return u.role === 'manager' && t.role === 'member' && t.createdBy === u.id;
+  }
+  function canDeactivate(u, t) {
+    if (!isActive(u) || !t) return false;
+    if (u.role === 'it') return true;
+    return u.role === 'manager' && t.role === 'member' && t.createdBy === u.id;
+  }
+  function visibleRoadmaps(u) { return db.roadmaps.filter((r) => canViewRoadmap(u, r)); }
+  function managedMembers(u) { return db.users.filter((x) => x.role === 'member' && x.createdBy === u.id); }
+  // People a manager may put on a roadmap: any active member or other manager.
+  function addablePeople(u) {
+    return db.users.filter((x) => (x.role === 'member' || x.role === 'manager') && x.id !== u.id && isActive(x));
+  }
+
+  // ---------- accounts ----------
+  // password === null makes an account that must be activated with an invite link.
+  async function makeUser(fields, password, byId, kind) {
+    const salt = password === null ? '' : randSalt();
+    const hash = password === null ? '' : await sha256(salt + ':' + password);
+    // checked after the await: a double-click starts two creates that both passed the first check
+    need(!db.users.some((x) => x.username === fields.username), 'That username is already taken.');
+    const u = Object.assign({
+      id: uid('u'), avatar: '', presence: 'available', statusText: '', createdAt: now(), createdBy: null, active: true,
+    }, fields, { salt, hash });
+    db.users.push(u);
+    if (password !== null) db.pwlog.push({ id: uid('p'), at: now(), userId: u.id, byId: byId || null, kind: kind || 'demo_set' });
+    return u;
+  }
+  function checkNewAccount(name, username) {
+    name = clean(name, 40); username = clean(username, 24).toLowerCase();
+    need(name, 'Enter a name.');
+    need(/^[a-z0-9._-]{3,24}$/.test(username), 'Username: 3 to 24 letters, numbers, dots, dashes or underscores.');
+    need(!db.users.some((x) => x.username === username), 'That username is already taken.');
+    return { name, username };
+  }
+  async function issueToken(actor, target, kind, fixedToken) {
+    let token = fixedToken;
+    if (!token) {
+      const b = new Uint8Array(24);
+      if (globalThis.crypto && globalThis.crypto.getRandomValues) globalThis.crypto.getRandomValues(b);
+      else for (let i = 0; i < 24; i++) b[i] = Math.floor(Math.random() * 256);
+      token = hex(b);
+    }
+    const tokenHash = await sha256('invite:' + token); // only the hash is stored
+    db.invites.forEach((i) => { if (i.userId === target.id && !i.usedAt && !i.revokedAt) i.revokedAt = now(); });
+    const inv = { id: uid('i'), userId: target.id, kind, tokenHash, createdAt: now(), expiresAt: now() + INVITE_TTL, createdBy: actor ? actor.id : null, usedAt: null, revokedAt: null };
+    db.invites.push(inv);
+    db.pwlog.push({ id: uid('p'), at: now(), userId: target.id, byId: actor ? actor.id : null, kind: kind === 'invite' ? 'invite_issued' : 'reset_issued' });
+    log(actor, 'password', (kind === 'invite' ? 'issued an invite link for ' : 'issued a reset link for ') + target.name, { subjectId: target.id });
+    return { token, expiresAt: inv.expiresAt };
+  }
+  // Returns { user, token, expiresAt }. The token is shown once by the UI and never stored.
+  async function createAccount(role, data) {
+    const actor = cur();
+    need(role === 'manager' || role === 'member' || role === 'it', 'Unknown account type.');
+    need(role === 'member' ? actor.role === 'manager' : actor.role === 'it',
+      role === 'member' ? 'Only managers can create team member accounts.' : 'Only IT admins can create manager and IT admin accounts.');
+    const c = checkNewAccount(data.name, data.username);
+    const u = await makeUser({ username: c.username, name: c.name, role, createdBy: actor.id }, null);
+    log(actor, 'account', 'created the ' + ROLE_LABEL[role].toLowerCase() + ' account "' + u.name + '" (@' + u.username + ')', { subjectId: u.id });
+    const t = await issueToken(actor, u, 'invite');
+    save();
+    return { user: u, token: t.token, expiresAt: t.expiresAt };
+  }
+  // A fresh link for someone who has no password yet (invite) or who has one (reset). Old password stays valid until the link is used.
+  async function issueLink(targetId) {
+    const actor = cur(); const t = user(targetId);
+    need(t && canResetPassword(actor, t), 'You cannot send a link to this account.');
+    const kind = t.hash ? 'reset' : 'invite';
+    const r = await issueToken(actor, t, kind);
+    save();
+    return { token: r.token, expiresAt: r.expiresAt, kind };
+  }
+  async function findInvite(token) {
+    const h = await sha256('invite:' + String(token));
+    return db.invites.find((i) => i.tokenHash === h) || null;
+  }
+  function inviteState(inv) {
+    if (!inv) return 'unknown';
+    if (inv.usedAt) return 'used';
+    if (inv.revokedAt) return 'replaced';
+    if (now() > inv.expiresAt) return 'expired';
+    if (!isActive(user(inv.userId))) return 'deactivated';
+    return 'valid';
+  }
+  async function inviteInfo(token) {
+    const inv = await findInvite(token);
+    const state = inviteState(inv);
+    if (state !== 'valid') return { valid: false, reason: state };
+    const u = user(inv.userId);
+    return { valid: true, name: u.name, username: u.username, kind: inv.kind, expiresAt: inv.expiresAt };
+  }
+  const checkPassword = (pw) => need(typeof pw === 'string' && pw.length >= 6 && pw.length <= 100, 'Password must be at least 6 characters.');
+  async function applyInvite(token, password) {
+    checkPassword(password);
+    let inv = await findInvite(token);
+    need(inviteState(inv) === 'valid', 'This link is not valid any more.');
+    const u = user(inv.userId);
+    const salt = randSalt();
+    const hash = await sha256(salt + ':' + password);
+    inv = await findInvite(token); // re-check after the await: a second tab may have used it meanwhile
+    need(inviteState(inv) === 'valid', 'This link is not valid any more.');
+    u.salt = salt; u.hash = hash;
+    inv.usedAt = now();
+    db.pwlog.push({ id: uid('p'), at: now(), userId: u.id, byId: u.id, kind: inv.kind === 'invite' ? 'invite_used' : 'reset_used' });
+    log(u, 'password', inv.kind === 'invite' ? 'used the invite link and set their own password' : 'used a reset link and set a new password', { subjectId: u.id });
+    return u;
+  }
+  async function completeInvite(token, password) {
+    const u = await applyInvite(token, password);
+    setSession(u.id);
+    log(u, 'login', 'signed in after setting their password');
+    save();
+    return u;
+  }
+  function pendingInviteFor(userId) {
+    const inv = db.invites.filter((i) => i.userId === userId && inviteState(i) === 'valid').pop();
+    return inv ? { kind: inv.kind, expiresAt: inv.expiresAt } : null;
+  }
+  async function login(username, password) {
+    const uname = clean(username, 24).toLowerCase();
+    const x = db.users.find((u) => u.username === uname);
+    const ok = x && x.hash && (await sha256(x.salt + ':' + String(password))) === x.hash;
+    if (!ok) {
+      // a password typed into the username box must never reach the log: only log text shaped like a username
+      const typed = clean(username, 200).toLowerCase();
+      const shown = /^[a-z0-9._-]{3,24}$/.test(typed) ? '"' + typed + '"' : 'an invalid username';
+      log(null, 'security', 'failed sign-in attempt for ' + shown);
+      save();
+      throw new Error(x && !x.hash ? 'This account has not been activated yet. Open your invite link first.' : 'Wrong username or password.');
+    }
+    if (!isActive(x)) {
+      log(x, 'security', 'was blocked from signing in: the account is deactivated', { subjectId: x.id });
+      save();
+      throw new Error('This account is deactivated. Ask your IT admin or manager.');
+    }
+    setSession(x.id);
+    log(x, 'login', 'signed in');
+    save();
+    return x;
+  }
+  function quickLogin(id) {
+    const x = user(id); need(x && x.hash, 'This account has no password yet.');
+    need(isActive(x), 'This account is deactivated.');
+    setSession(x.id);
+    log(x, 'login', 'signed in with the demo account switcher');
+    save();
+  }
+  function logout() {
+    const u = me();
+    if (u) { log(u, 'login', 'signed out'); save(); }
+    setSession(null);
+  }
+
+  // ---------- deactivate / reactivate / transfer (accounts are never deleted) ----------
+  function ownedRoadmaps(id) { return db.roadmaps.filter((r) => r.managerId === id && !r.deletedAt); }
+  function deactivationBlockers(id) {
+    const t = user(id); const out = [];
+    if (!t) return out;
+    if (t.role === 'manager') {
+      const rs = ownedRoadmaps(id).length;
+      const ms = db.users.filter((x) => x.role === 'member' && x.createdBy === id && isActive(x)).length;
+      if (rs || ms) out.push('transfer');
+    }
+    // only IT accounts that can actually sign in count (a pending invite has no hash)
+    if (t.role === 'it' && isActive(t) && t.hash && db.users.filter((x) => x.role === 'it' && isActive(x) && x.hash).length <= 1) out.push('last-it');
+    return out;
+  }
+  function unassignOpenTasks(actor, person, why) {
+    let n = 0;
+    db.tasks.forEach((t) => {
+      if (t.status === 'finished' || !t.assignees.includes(person.id)) return;
+      const rm = roadmapById(t.roadmapId);
+      if (rm && rm.archivedAt) return; // archived roadmaps are read-only: assignees stay as history, reassign after unarchiving
+      t.assignees = t.assignees.filter((x) => x !== person.id);
+      t.flags = (t.flags || []).concat({ type: 'unassigned', userId: person.id, at: now(), reason: why });
+      log(actor, 'task', 'unassigned ' + person.name + ' from "' + t.title + '" (' + why + '); the roadmap owner needs to pick someone new', { roadmapId: t.roadmapId, taskId: t.id, subjectId: person.id });
+      n++;
+    });
+    return n;
+  }
+  function deactivate(id) {
+    const actor = cur(); const t = user(id);
+    need(t && canDeactivate(actor, t), 'You cannot deactivate this account.');
+    need(isActive(t), 'This account is already deactivated.');
+    const b = deactivationBlockers(id);
+    need(!b.includes('last-it'), 'This is the last active IT admin. Create or reactivate another IT admin first.');
+    need(!b.includes('transfer'), 'This manager still owns roadmaps or team members. Transfer them to another manager first.');
+    t.active = false; t.deactivatedAt = now(); t.deactivatedBy = actor.id;
+    db.invites.forEach((i) => { if (i.userId === t.id && !i.usedAt && !i.revokedAt) i.revokedAt = now(); });
+    log(actor, 'account', 'deactivated the account of ' + t.name, { subjectId: t.id });
+    unassignOpenTasks(actor, t, 'account deactivated');
+    if (session === t.id) { session = null; sDel(SKEY); } // their session ends at once
+    save();
+  }
+  function canReactivate(actor, t) {
+    if (!actor || !t || isActive(t) || !canDeactivate(actor, t)) return false;
+    const by = user(t.deactivatedBy);
+    return actor.role === 'it' || !by || by.role !== 'it';
+  }
+  function reactivate(id) {
+    const actor = cur(); const t = user(id);
+    need(t && canDeactivate(actor, t), 'You cannot reactivate this account.');
+    need(!isActive(t), 'This account is already active.');
+    need(canReactivate(actor, t), 'IT deactivated this account, so only IT can reactivate it.');
+    t.active = true; delete t.deactivatedAt; delete t.deactivatedBy;
+    log(actor, 'account', 'reactivated the account of ' + t.name, { subjectId: t.id });
+    save();
+  }
+  function transferManager(fromId, toId) {
+    const actor = cur(); need(actor.role === 'it', 'Only IT admins can transfer a manager\'s roadmaps and team.');
+    const from = user(fromId), to = user(toId);
+    need(from && from.role === 'manager', 'Pick the manager to transfer from.');
+    need(to && to.role === 'manager' && isActive(to) && to.id !== from.id, 'Pick an active manager to transfer to.');
+    const rs = ownedRoadmaps(from.id);
+    const ms = db.users.filter((x) => x.role === 'member' && x.createdBy === from.id);
+    rs.forEach((r) => {
+      r.managerId = to.id;
+      r.memberIds = r.memberIds.filter((x) => x !== to.id);
+      r.creators = r.creators.filter((x) => x !== to.id);
+      db.tasks.forEach((t) => {
+        // archived roadmaps change owner (a deactivated manager can't keep them) but their tasks stay frozen
+        if (t.roadmapId === r.id && !r.archivedAt && t.assignees.includes(from.id) && t.status !== 'finished') {
+          t.assignees = t.assignees.filter((x) => x !== from.id);
+          t.flags = (t.flags || []).concat({ type: 'unassigned', userId: from.id, at: now(), reason: 'roadmap transferred' });
+        }
+      });
+      log(actor, 'transfer', 'moved the roadmap "' + r.title + '" from ' + from.name + ' to ' + to.name, { roadmapId: r.id, subjectId: to.id });
+    });
+    ms.forEach((m) => { m.createdBy = to.id; });
+    log(actor, 'transfer', 'transferred ' + rs.length + ' roadmap(s) and ' + ms.length + ' team member(s) from ' + from.name + ' to ' + to.name, { subjectId: from.id });
+    save();
+    return { roadmaps: rs.length, members: ms.length };
+  }
+
+  // ---------- profile ----------
+  const IMG_RE = /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/;
+  const safeImage = (s) => typeof s === 'string' && s.length < 120000 && IMG_RE.test(s);
+  function updateProfile(p) {
+    const u = cur(); const changes = [];
+    if ('name' in p) {
+      const n = clean(p.name, 40); need(n, 'Name cannot be empty.');
+      if (n !== u.name) { changes.push('name'); u.name = n; }
+    }
+    if ('avatar' in p) {
+      need(p.avatar === '' || safeImage(p.avatar), 'That picture could not be used.');
+      if (p.avatar !== u.avatar) { changes.push(p.avatar ? 'profile picture' : 'removed profile picture'); u.avatar = p.avatar; }
+    }
+    if ('presence' in p) {
+      need(PRESENCE.includes(p.presence), 'Unknown status.');
+      if (p.presence !== u.presence) { changes.push('status to ' + PRESENCE_LABEL[p.presence].toLowerCase()); u.presence = p.presence; }
+    }
+    if ('statusText' in p) {
+      const s = clean(p.statusText, 80);
+      if (s !== u.statusText) { changes.push('status message'); u.statusText = s; }
+    }
+    if (changes.length) { log(u, 'profile', 'changed their ' + changes.join(', '), { subjectId: u.id }); save(); }
+    return changes.length > 0;
+  }
+
+  // ---------- roadmaps ----------
+  function normRoadmapInput(actor, d, existing) {
+    const title = clean(d.title, 80); need(title, 'Give the roadmap a name.');
+    const allowed = db.users
+      .filter((x) => (x.role === 'member' || x.role === 'manager') && x.id !== actor.id && (isActive(x) || (existing && existing.memberIds.includes(x.id))))
+      .map((x) => x.id);
+    const memberIds = Array.from(new Set((d.memberIds || []).filter((id) => allowed.includes(id))));
+    const creatorMode = ['everyone', 'chosen'].includes(d.creatorMode) ? d.creatorMode : 'manager';
+    const creators = creatorMode === 'chosen' ? Array.from(new Set((d.creators || []).filter((id) => memberIds.includes(id)))) : [];
+    return { title, description: cleanLong(d.description, 400), memberIds, creatorMode, creators };
+  }
+  function createRoadmap(d) {
+    const actor = cur(); need(actor.role === 'manager', 'Only managers can create roadmaps.');
+    const n = normRoadmapInput(actor, d);
+    const r = Object.assign({ id: uid('r'), managerId: actor.id, createdAt: now() }, n);
+    db.roadmaps.push(r);
+    log(actor, 'roadmap', 'created the roadmap "' + r.title + '"', { roadmapId: r.id });
+    save();
+    return r;
+  }
+  function updateRoadmap(rid, d) {
+    const actor = cur(); const r = roadmapById(rid);
+    need(r && canManageRoadmap(actor, r), 'Only the roadmap\'s owner can change its settings.');
+    need(!isArchived(r), ARCHIVED_MSG);
+    const n = normRoadmapInput(actor, d, r);
+    const changes = [];
+    if (n.title !== r.title) changes.push('name');
+    if (n.description !== r.description) changes.push('description');
+    if (n.creatorMode !== r.creatorMode || n.creators.slice().sort().join() !== r.creators.slice().sort().join()) changes.push('who can create tasks');
+    const removed = r.memberIds.filter((id) => !n.memberIds.includes(id));
+    const added = n.memberIds.filter((id) => !r.memberIds.includes(id));
+    if (added.length || removed.length) changes.push('people');
+    Object.assign(r, n);
+    // Someone removed from the roadmap loses their open assignments on it.
+    db.tasks.forEach((t) => {
+      if (t.roadmapId !== r.id) return;
+      const gone = t.assignees.filter((id) => id !== r.managerId && !r.memberIds.includes(id));
+      if (!gone.length) return;
+      t.assignees = t.assignees.filter((id) => !gone.includes(id));
+      if (t.status !== 'finished') t.flags = (t.flags || []).concat(gone.map((g) => ({ type: 'unassigned', userId: g, at: now(), reason: 'removed from the roadmap' })));
+    });
+    if (changes.length) { log(actor, 'roadmap', 'changed the roadmap "' + r.title + '": ' + changes.join(', '), { roadmapId: r.id }); save(); }
+    return r;
+  }
+  // Soft delete: the roadmap disappears for everyone but its log entries stay (IT sees "deleted roadmap").
+  function deleteRoadmap(rid) {
+    const actor = cur(); const r = roadmapById(rid);
+    need(r && canManageRoadmap(actor, r), 'Only the roadmap\'s owner can delete it.');
+    need(!isArchived(r), ARCHIVED_MSG);
+    r.deletedAt = now(); r.deletedBy = actor.id;
+    log(actor, 'roadmap', 'deleted the roadmap "' + r.title + '"', { roadmapId: r.id });
+    save();
+  }
+  function deletedRoadmaps() {
+    const u = cur(); need(u.role === 'it', 'Only IT admins can see deleted roadmaps.');
+    return db.roadmaps.filter((r) => r.deletedAt);
+  }
+
+  // ---------- tasks ----------
+  const parseTags = (v) => {
+    const arr = Array.isArray(v) ? v : String(v || '').split(',');
+    return Array.from(new Set(arr.map((x) => clean(x, 24)).filter(Boolean))).slice(0, 6);
+  };
+  const names = (ids) => ids.map((id) => dn(user(id))).join(', ');
+  function createTask(rid, d) {
+    const actor = cur(); const r = roadmapById(rid);
+    need(r && isCreator(actor, r), r && isArchived(r) ? ARCHIVED_MSG : 'You are not allowed to create tasks on this roadmap.');
+    const title = clean(d.title, 120); need(title, 'Give the task a name.');
+    const ok = assignable(r);
+    const t = {
+      id: uid('t'), roadmapId: r.id, title, description: cleanLong(d.description, 2000),
+      status: 'planned', tags: parseTags(d.tags),
+      assignees: Array.from(new Set((d.assignees || []).filter((id) => ok.includes(id)))),
+      createdBy: actor.id, createdAt: now(), flags: [],
+    };
+    db.tasks.push(t);
+    log(actor, 'task', 'created the task "' + t.title + '"', { roadmapId: r.id, taskId: t.id });
+    if (t.assignees.length) log(actor, 'task', 'assigned "' + t.title + '" to ' + names(t.assignees), { roadmapId: r.id, taskId: t.id });
+    save();
+    return t;
+  }
+  // patch may contain: title, description, tags (need: assigned), status (forward: assigned, back: owner), assignees (need: canAssign).
+  function updateTask(tid, patch) {
+    const actor = cur(); const t = taskById(tid); const r = t && roadmapById(t.roadmapId);
+    need(t && r && canViewRoadmap(actor, r), 'You cannot see this task.');
+    need(!isArchived(r), ARCHIVED_MSG);
+    const next = {};
+    if ('title' in patch) { next.title = clean(patch.title, 120); need(next.title, 'Give the task a name.'); }
+    if ('description' in patch) next.description = cleanLong(patch.description, 2000);
+    if ('tags' in patch) next.tags = parseTags(patch.tags);
+    if ('status' in patch) { need(STATUSES.includes(patch.status), 'Unknown status.'); next.status = patch.status; }
+    if ('assignees' in patch) {
+      const ok = assignable(r);
+      next.assignees = Array.from(new Set((patch.assignees || []).filter((id) => ok.includes(id))));
+    }
+    const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+    const contentKeys = ['title', 'description', 'tags'].filter((k) => k in next && !same(next[k], t[k]));
+    const statusChanged = 'status' in next && next.status !== t.status;
+    const assignChanged = 'assignees' in next && !same(next.assignees.slice().sort(), t.assignees.slice().sort());
+    const deny = (msg) => {
+      log(actor, 'security', 'was blocked from changing "' + t.title + '": ' + msg, { roadmapId: r.id, taskId: t.id });
+      save();
+      throw new Error(msg);
+    };
+    if (contentKeys.length && !canEditTask(actor, t)) deny('Only the people assigned to this task can edit it.');
+    let move = null;
+    if (statusChanged) { move = canMove(actor, t, next.status); if (!move.ok) deny(move.reason); }
+    if (assignChanged && !canAssign(actor, r, t)) deny('You cannot change who this task is assigned to.');
+    const ctx = { roadmapId: r.id, taskId: t.id };
+    const oldTitle = t.title;
+    if (statusChanged) {
+      const from = STATUS_LABEL[t.status], to = STATUS_LABEL[next.status];
+      t.status = next.status;
+      if (move.override) log(actor, 'override', 'moved "' + oldTitle + '" back from ' + from + ' to ' + to + ' (owner override)', ctx);
+      else if (next.status === 'finished') log(actor, 'task', 'completed "' + oldTitle + '"', ctx);
+      else log(actor, 'task', 'moved "' + oldTitle + '" from ' + from + ' to ' + to, ctx);
+    }
+    if (contentKeys.length) {
+      contentKeys.forEach((k) => { t[k] = next[k]; });
+      log(actor, 'task', 'edited "' + oldTitle + '" (' + contentKeys.join(', ') + ')', ctx);
+    }
+    if (assignChanged) {
+      const added = next.assignees.filter((id) => !t.assignees.includes(id));
+      const removed = t.assignees.filter((id) => !next.assignees.includes(id));
+      t.assignees = next.assignees;
+      if (t.assignees.length) t.flags = [];
+      if (added.length) log(actor, 'task', 'assigned "' + t.title + '" to ' + names(added), ctx);
+      if (removed.length) log(actor, 'task', 'unassigned ' + names(removed) + ' from "' + t.title + '"', ctx);
+    }
+    if (contentKeys.length || statusChanged || assignChanged) save();
+    return t;
+  }
+  function canDeleteTask(u, t) {
+    const r = t && roadmapById(t.roadmapId);
+    return !!(r && canViewRoadmap(u, r) && !isArchived(r) && (isOwner(u, r) || (t.createdBy === u.id && isCreator(u, r))));
+  }
+  // Own comment, the roadmap's owner, or IT. Never on an archived roadmap.
+  function canDeleteComment(u, c) {
+    const t = c && taskById(c.taskId); const r = t && roadmapById(t.roadmapId);
+    if (!isActive(u) || !r || !canViewRoadmap(u, r) || isArchived(r)) return false;
+    return u.role === 'it' || isOwner(u, r) || c.userId === u.id;
+  }
+  function deleteComment(cid) {
+    const actor = cur(); const c = db.comments.find((x) => x.id === cid);
+    const t = c && taskById(c.taskId); const r = t && roadmapById(t.roadmapId);
+    need(c && r, 'That comment no longer exists.');
+    need(!isArchived(r), ARCHIVED_MSG);
+    need(canDeleteComment(actor, c), 'You can delete your own comments. Roadmap owners and IT can delete any.');
+    db.comments = db.comments.filter((x) => x.id !== cid);
+    // the comment leaves the thread; the audit log keeps the fact (never the text) and is not touched otherwise
+    log(actor, 'comment', 'deleted ' + dn(user(c.userId)) + "'s comment on " + '"' + t.title + '"', { roadmapId: r.id, taskId: t.id, subjectId: c.userId });
+    save();
+  }
+  // ---- archive: a read-only state the owner or IT can switch on and off
+  function canArchive(u, r) { return !!(isActive(u) && r && !r.deletedAt && (u.role === 'it' || isOwner(u, r))); }
+  function archiveRoadmap(rid) {
+    const actor = cur(); const r = roadmapById(rid);
+    need(r && canArchive(actor, r), "Only the roadmap's owner or an IT admin can archive it.");
+    need(!isArchived(r), 'This roadmap is already archived.');
+    r.archivedAt = now(); r.archivedBy = actor.id;
+    log(actor, 'roadmap', 'archived the roadmap "' + r.title + '"', { roadmapId: r.id });
+    save();
+  }
+  function unarchiveRoadmap(rid) {
+    const actor = cur(); const r = roadmapById(rid);
+    need(r && canArchive(actor, r), "Only the roadmap's owner or an IT admin can unarchive it.");
+    need(isArchived(r), 'This roadmap is not archived.');
+    r.archivedAt = null; r.archivedBy = null;
+    log(actor, 'roadmap', 'unarchived the roadmap "' + r.title + '"', { roadmapId: r.id });
+    save();
+  }
+  function deleteTask(tid) {
+    const actor = cur(); const t = taskById(tid); const r = t && roadmapById(t.roadmapId);
+    need(!r || !isArchived(r), ARCHIVED_MSG);
+    need(canDeleteTask(actor, t), 'Only the roadmap owner, or the person who created the task, can delete it.');
+    db.tasks = db.tasks.filter((x) => x.id !== tid);
+    db.comments = db.comments.filter((c) => c.taskId !== tid);
+    log(actor, 'task', 'deleted the task "' + t.title + '"', { roadmapId: r.id });
+    save();
+  }
+  function addComment(tid, text) {
+    const actor = cur(); const t = taskById(tid); const r = t && roadmapById(t.roadmapId);
+    need(t && r && canViewRoadmap(actor, r), 'You cannot comment on this task.');
+    need(!isArchived(r), ARCHIVED_MSG);
+    const body = cleanLong(text, 1000); need(body, 'Write something first.');
+    const c = { id: uid('c'), taskId: t.id, userId: actor.id, text: body, at: now() };
+    db.comments.push(c);
+    log(actor, 'comment', 'commented on "' + t.title + '"', { roadmapId: r.id, taskId: t.id });
+    save();
+    return c;
+  }
+
+  // ---------- reading logs (permission checked, always a copy) ----------
+  function globalLog() { const u = cur(); need(u.role === 'it', 'Only IT admins can see the full activity log.'); return db.logs.slice().reverse(); }
+  function roadmapLog(rid) {
+    const u = cur(); const r = roadmapById(rid);
+    need(r && canSeeRoadmapLog(u, r), 'You cannot see this roadmap\'s log.');
+    return db.logs.filter((l) => l.roadmapId === rid).reverse();
+  }
+  function accountLog(uidv) {
+    const u = cur(); const t = user(uidv);
+    need(t && canSeeAccountLog(u, t), 'You cannot see this account\'s log.');
+    return {
+      by: db.logs.filter((l) => l.actorId === t.id).reverse(),
+      about: db.logs.filter((l) => l.subjectId === t.id && l.actorId !== t.id).reverse(),
+    };
+  }
+  function passwordLog() { const u = cur(); need(u.role === 'it', 'Only IT admins can see the password log.'); return db.pwlog.slice().reverse(); }
+  function commentsFor(tid) {
+    const u = cur(); const t = taskById(tid); const r = t && roadmapById(t.roadmapId);
+    need(t && r && canViewRoadmap(u, r), 'You cannot see this task.');
+    return db.comments.filter((c) => c.taskId === tid);
+  }
+  function lastLogin(id) {
+    for (let i = db.logs.length - 1; i >= 0; i--) {
+      const l = db.logs[i];
+      if (l.actorId === id && l.action === 'login' && l.text.indexOf('signed in') === 0) return l.at;
+    }
+    return null;
+  }
+
+  // ---------- demo data ----------
+  async function seed() {
+    db = { v: 1, users: [], roadmaps: [], tasks: [], comments: [], logs: [], pwlog: [], invites: [] };
+    clock = Date.now() - 4 * DAY;
+    const tick = (min) => { clock += min * 60000; };
+    const as = async (u, fn) => { const prev = session; session = u.id; try { return await fn(); } finally { session = prev; } };
+    // demo accounts get the shared demo password directly so the quick switcher works
+    const acct = async (actor, role, name, username) => {
+      const u = await makeUser({ username, name, role, createdBy: actor.id }, DEMO_PASSWORD, actor.id, 'demo_set');
+      log(actor, 'account', 'created the ' + ROLE_LABEL[role].toLowerCase() + ' account "' + u.name + '" (@' + u.username + ')', { subjectId: u.id });
+      return u;
+    };
+
+    const ingrid = await makeUser({ username: 'ingrid', name: 'Ingrid Vos', role: 'it' }, DEMO_PASSWORD, null, 'demo_set');
+    log(ingrid, 'account', 'set up Kivo Office and the first IT admin account', { subjectId: ingrid.id });
+    tick(5);
+    log(ingrid, 'login', 'signed in');
+    const dina = await acct(ingrid, 'it', 'Dina Alvarez', 'dina');
+    tick(3);
+    const marta = await acct(ingrid, 'manager', 'Marta Jansen', 'marta');
+    tick(3);
+    const omar = await acct(ingrid, 'manager', 'Omar Haddad', 'omar');
+    tick(40);
+    log(marta, 'login', 'signed in');
+    const lena = await acct(marta, 'member', 'Lena Marsh', 'lena');
+    tick(2);
+    const tom = await acct(marta, 'member', 'Tom Bakker', 'tom');
+    tick(2);
+    const sofia = await acct(marta, 'member', 'Sofia Rossi', 'sofia');
+    tick(30);
+    log(omar, 'login', 'signed in');
+    const ravi = await acct(omar, 'member', 'Ravi Patel', 'ravi');
+    tick(2);
+    const noor = await acct(omar, 'member', 'Noor Hassan', 'noor');
+    tick(5);
+    // an invite that was never used and has now expired (4 days ago + 48 h)
+    const dev = await makeUser({ username: 'dev', name: 'Dev Kapoor', role: 'member', createdBy: omar.id }, null);
+    log(omar, 'account', 'created the team member account "Dev Kapoor" (@dev)', { subjectId: dev.id });
+    await issueToken(omar, dev, 'invite', DEMO_EXPIRED_TOKEN);
+    tick(20);
+    // Marta sends Sofia a reset link and Sofia uses it
+    const rl = await as(marta, () => issueLink(sofia.id));
+    tick(12);
+    await applyInvite(rl.token, DEMO_PASSWORD);
+
+    const web = await as(marta, () => createRoadmap({
+      title: 'Website relaunch', description: 'New marketing site, new copy, same old URLs working.',
+      memberIds: [lena.id, tom.id, sofia.id, noor.id], creatorMode: 'chosen', creators: [lena.id],
+    }));
+    const app = await as(omar, () => createRoadmap({
+      title: 'Mobile app v2', description: 'Onboarding, notifications and the sync crash that keeps coming back.',
+      memberIds: [ravi.id, noor.id, marta.id], creatorMode: 'everyone', creators: [],
+    }));
+
+    const mk = (who, rid, title, desc, tags, assignees) => as(who, () => createTask(rid, { title, description: desc, tags, assignees }));
+    const mv = (who, t, status) => as(who, () => updateTask(t.id, { status }));
+    const say = (who, t, text) => as(who, () => addComment(t.id, text));
+
+    tick(60);
+    const w1 = await mk(marta, web.id, 'Audit current sitemap', 'List every page, mark what stays, what merges, what goes.', 'Research', [tom.id]);
+    tick(10);
+    const w2 = await mk(lena, web.id, 'Write new homepage copy', 'Hero, three feature blurbs and a short about section. Plain language, no buzzwords.', 'Content, Homepage', [sofia.id, lena.id]);
+    tick(10);
+    await mk(lena, web.id, 'Design component library', 'Buttons, forms, cards and the navigation, in Figma first.', 'Design', [lena.id]);
+    tick(10);
+    const w4 = await mk(marta, web.id, 'Set up redirects from old URLs', 'Every old URL needs a 301. Use the sitemap audit as the source.', 'SEO', [tom.id]);
+    tick(10);
+    await mk(lena, web.id, 'Accessibility pass', 'Contrast, keyboard order and alt text. Nobody is assigned yet.', 'QA', []);
+    tick(10);
+    await mk(marta, web.id, 'Launch checklist', 'DNS, analytics, cookie banner, announcement post.', 'Launch', [marta.id]);
+    tick(90);
+    await mv(tom, w1, 'in_progress'); tick(240); await mv(tom, w1, 'finished');
+    tick(30); await mv(sofia, w2, 'in_progress');
+    tick(15); await as(lena, async () => updateTask((db.tasks.find((x) => x.title === 'Design component library')).id, { status: 'in_progress' }));
+    tick(20); await say(sofia, w2, 'Draft one is up in the shared doc. Can we keep the old tagline or is it going?');
+    tick(12); await say(lena, w2, 'Keeping it for now. Marta, shout if legal wants it gone.');
+    tick(8); await say(tom, w1, 'Sitemap is done: 142 pages, 61 stay, 40 merge, 41 go. Redirect list is next.');
+    tick(5); await say(marta, w4, 'Thanks Tom. Please start from the "go" tab.');
+    tick(300);
+    await as(tom, async () => { try { updateTask(w2.id, { title: 'Write the homepage copy (tom edit)' }); } catch (e) { /* blocked, as intended */ } });
+    tick(10);
+    await as(tom, async () => { try { updateTask(w1.id, { status: 'planned' }); } catch (e) { /* backward move blocked */ } });
+
+    tick(180);
+    const a1 = await mk(omar, app.id, 'Onboarding flow', 'Three screens, skippable, with a sample project so the app is not empty on first launch.', 'UX', [noor.id]);
+    tick(10);
+    await mk(ravi, app.id, 'Push notification settings', 'Per-roadmap toggles and quiet hours.', 'Settings', [ravi.id]);
+    tick(10);
+    const a3 = await mk(omar, app.id, 'Fix offline sync crash', 'Crash when a task is edited offline and the roadmap was deleted on the server.', 'Bug, Sync', [ravi.id]);
+    tick(10);
+    const a4 = await mk(omar, app.id, 'App Store screenshots', 'Six screenshots, two languages.', 'Marketing', [noor.id]);
+    tick(10);
+    await mk(marta, app.id, 'Beta feedback survey', 'Five questions, link in the TestFlight notes.', 'Research', []);
+    tick(60);
+    await mv(noor, a1, 'in_progress'); tick(20); await mv(ravi, a3, 'in_progress');
+    tick(120); await mv(noor, a4, 'finished');
+    tick(15); await say(ravi, a3, 'Reproduced it. The local queue replays against a roadmap id that no longer exists.');
+    tick(9); await say(omar, a3, 'Good find. Ship the fix in the next beta, not a hotfix.');
+    tick(30); await mv(omar, a4, 'in_progress'); // owner override: reopen a finished task
+
+    // presence and status messages, written as the members themselves
+    tick(60);
+    await as(lena, () => updateProfile({ presence: 'busy', statusText: 'In design review until 15:00' }));
+    await as(tom, () => updateProfile({ presence: 'available', statusText: 'Working on redirects' }));
+    await as(sofia, () => updateProfile({ presence: 'away', statusText: 'Back on Monday' }));
+    await as(ravi, () => updateProfile({ presence: 'available', statusText: '' }));
+    await as(noor, () => updateProfile({ presence: 'busy', statusText: 'Heads down on onboarding' }));
+    void dina;
+
+    // an old roadmap that was archived, so the Archived section has something in it
+    const old = await as(marta, () => createRoadmap({ title: 'Newsletter relaunch (Q3)', description: 'Wrapped up last quarter. Kept for reference.', memberIds: [lena.id, sofia.id], creatorMode: 'manager', creators: [] }));
+    const n1 = await mk(marta, old.id, 'Pick the email tool', 'Compare three, choose one.', 'Research', [lena.id]);
+    const n2 = await mk(marta, old.id, 'Send the first issue', '', 'Launch', [sofia.id]);
+    await mv(lena, n1, 'finished'); await mv(sofia, n2, 'finished');
+    await say(lena, n1, 'Went with the cheaper one, it does everything we need.');
+    await as(marta, () => archiveRoadmap(old.id));
+
+    // a fresh invite for the boss to try, issued "now" so it is valid for 48 h
+    clock = null;
+    const priya = await makeUser({ username: 'priya', name: 'Priya Nair', role: 'member', createdBy: marta.id }, null);
+    log(marta, 'account', 'created the team member account "Priya Nair" (@priya)', { subjectId: priya.id });
+    await issueToken(marta, priya, 'invite', DEMO_INVITE_TOKEN);
+    session = null; sDel(SKEY);
+    save();
+  }
+
+  async function init() { if (!load()) await seed(); }
+  async function resetDemo() { sDel(KEY); sDel(SKEY); session = null; await seed(); }
+
+  return {
+    STATUSES, STATUS_LABEL, ROLE_LABEL, PRESENCE, PRESENCE_LABEL, DEMO_PASSWORD, DEMO_INVITE_TOKEN, DEMO_EXPIRED_TOKEN,
+    init, resetDemo, sha256, sha256Fallback, hex,
+    get storageOk() { return storageOk; },
+    get db() { return db; }, me, user, roadmapById, taskById, dn, isActive,
+    canViewRoadmap, isOwner, isCreator, canAssign, canEditTask, canMove, assignable, canManageRoadmap, canSeeRoadmapLog,
+    canSeeProfile, canSeeAccountLog, canResetPassword, canDeactivate, canReactivate, visibleRoadmaps, managedMembers, addablePeople, safeImage,
+    createAccount, issueLink, inviteInfo, completeInvite, pendingInviteFor, login, quickLogin, logout, updateProfile,
+    deactivate, reactivate, deactivationBlockers, transferManager,
+    createRoadmap, updateRoadmap, deleteRoadmap, deletedRoadmaps, createTask, updateTask, deleteTask, addComment,
+    isArchived, canArchive, archiveRoadmap, unarchiveRoadmap, canDeleteTask, canDeleteComment, deleteComment,
+    globalLog, roadmapLog, accountLog, passwordLog, commentsFor, lastLogin,
+  };
+})();
+
+
+    </script>
+    <script>
+'use strict';
+/* ============================================================
+   UI: builds DOM with h() only. User text always goes in as text
+   nodes, never as HTML.
+   ============================================================ */
+(() => {
+  const C = Core;
+  const app = document.getElementById('app');
+
+  // ---------- tiny DOM helper ----------
+  const PROPS = ['value', 'checked', 'disabled', 'hidden', 'draggable', 'selected'];
+  function h(tag, props, ...kids) {
+    const e = document.createElement(tag);
+    if (props) {
+      for (const k of Object.keys(props)) {
+        const v = props[k];
+        if (v == null || v === false) continue;
+        if (k === 'class') e.className = v;
+        else if (k === 'text') e.textContent = v;
+        else if (k.slice(0, 2) === 'on') e.addEventListener(k.slice(2), v);
+        else if (PROPS.includes(k)) e[k] = v;
+        else if (v === true) e.setAttribute(k, '');
+        else e.setAttribute(k, v);
+      }
+    }
+    for (const c of kids.flat(Infinity)) {
+      if (c == null || c === false) continue;
+      e.append(c.nodeType ? c : document.createTextNode(String(c)));
+    }
+    return e;
+  }
+  const clear = (n) => { while (n.firstChild) n.removeChild(n.firstChild); };
+  // append() turns null into the text "null", so filter first
+  const addAll = (p, ...k) => p.append(...k.flat(Infinity).filter((x) => x != null && x !== false));
+
+  // ---------- formatting ----------
+  const fmtTime = (ts) => new Date(ts).toLocaleString(undefined, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+  function ago(ts) {
+    const s = Math.max(0, (Date.now() - ts) / 1000);
+    if (s < 60) return 'just now';
+    if (s < 3600) return Math.floor(s / 60) + ' min ago';
+    if (s < 86400) return Math.floor(s / 3600) + ' h ago';
+    return Math.floor(s / 86400) + ' d ago';
+  }
+  const initials = (n) => String(n).split(' ').filter(Boolean).slice(0, 2).map((x) => x[0]).join('');
+  const plural = (n, a, b) => n + ' ' + (n === 1 ? a : b);
+
+  // ---------- shared pieces ----------
+  const statusPill = (s, tag, props) => h(tag || 'span', Object.assign({ class: 'status-pill status-' + s }, props), h('span', { class: 'dot' }), C.STATUS_LABEL[s]);
+  const roleBadge = (r) => h('span', { class: 'role-badge' }, C.ROLE_LABEL[r]);
+  const presenceLine = (u) => h('span', { class: 'presence-line' },
+    h('span', { class: 'presence-dot p-' + u.presence }), C.PRESENCE_LABEL[u.presence], u.statusText ? ' · ' + u.statusText : '');
+  const tagEl = (t, i) => h('span', { class: 'task-tag tag-c' + (Math.abs(hashStr(t)) % 8) }, t);
+  function hashStr(s) { let x = 0; for (let i = 0; i < s.length; i++) x = (x * 31 + s.charCodeAt(i)) | 0; return x; }
+
+  let toastTimer = null;
+  function toast(msg, isErr) {
+    let t = document.getElementById('toast');
+    if (!t) { t = h('div', { id: 'toast', role: 'status', 'aria-live': 'polite' }); document.body.append(t); }
+    t.textContent = msg;
+    t.className = 'toast show' + (isErr ? ' err' : '');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { t.className = 'toast'; }, isErr ? 5000 : 2600);
+  }
+
+  // ---------- inline icons (SVG centres exactly; a text glyph never does) ----------
+  const SVGNS = 'http://www.w3.org/2000/svg';
+  const ICON = { back: 'M19 12H5M11 6l-6 6 6 6', close: 'M6 6l12 12M18 6L6 18', trash: 'M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 002 2h6a2 2 0 002-2l1-12M9 7V4h6v3' };
+  function svgIcon(d, size) {
+    const s = document.createElementNS(SVGNS, 'svg');
+    s.setAttribute('viewBox', '0 0 24 24'); s.setAttribute('width', size || 18); s.setAttribute('height', size || 18);
+    s.setAttribute('fill', 'none'); s.setAttribute('stroke', 'currentColor'); s.setAttribute('stroke-width', '2.2');
+    s.setAttribute('stroke-linecap', 'round'); s.setAttribute('stroke-linejoin', 'round'); s.setAttribute('aria-hidden', 'true');
+    const p = document.createElementNS(SVGNS, 'path'); p.setAttribute('d', d); s.append(p);
+    return s;
+  }
+
+  // ---------- modals (stackable) ----------
+  const modals = [];
+  function openModal(opts) {
+    const close = () => {
+      const i = modals.indexOf(m); if (i < 0) return;
+      modals.splice(i, 1); m.el.remove();
+      if (opts.onClose) opts.onClose();
+      if (m.prevFocus && m.prevFocus.focus) try { m.prevFocus.focus(); } catch (e) { /* gone */ }
+    };
+    const el = h('div', { class: 'modal open', onmousedown: (e) => { if (e.target === el) close(); } },
+      h('div', { class: 'modal-card' + (opts.small ? ' modal-small' : ''), role: 'dialog', 'aria-modal': 'true', 'aria-label': opts.title },
+        h('div', { class: 'modal-header' }, h('h3', { text: opts.title }),
+          h('button', { class: 'btn-close', 'aria-label': 'Close', onclick: close }, svgIcon(ICON.close, 16))),
+        h('div', { class: 'modal-body' }, opts.body),
+        opts.footer ? h('div', { class: 'modal-footer' }, opts.footer(close)) : null));
+    const m = { el, close, prevFocus: document.activeElement };
+    modals.push(m);
+    document.body.append(el);
+    const f = el.querySelector('input:not([type=hidden]),textarea,select,.modal-footer .btn');
+    if (f) f.focus();
+    return close;
+  }
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modals.length) modals[modals.length - 1].close();
+  });
+  function confirmBox(title, text, okLabel, onOk, danger) {
+    openModal({
+      title, small: true, body: h('p', { class: 'delete-warning', text }),
+      footer: (close) => [
+        h('button', { class: 'btn-ghost', onclick: close, text: 'Cancel' }),
+        h('button', { class: danger ? 'btn-danger' : 'btn', text: okLabel, onclick: async () => { close(); await onOk(); } }),
+      ],
+    });
+  }
+
+  // popup menus
+  document.addEventListener('click', () => document.querySelectorAll('.menu.open').forEach((m) => m.classList.remove('open')));
+
+  // Wraps an action: shows the error as a toast, always re-renders.
+  async function run(fn, okMsg) {
+    try { const r = await fn(); if (okMsg) toast(okMsg); render(); return r; }
+    catch (e) { toast(e && e.message ? e.message : 'Something went wrong.', true); render(); return undefined; }
+  }
+
+  // ---------- right-click / long-press menu: one shared element, listeners registered once ----------
+  const ctxState = { el: null, prev: null, swallowUntil: 0, timer: null, sx: 0, sy: 0, pid: -1 };
+  function closeCtx() {
+    const el = ctxState.el;
+    if (!el) return;
+    ctxState.el = null; el.remove();
+    const p = ctxState.prev; ctxState.prev = null;
+    if (p && p.isConnected && p.focus) try { p.focus({ preventScroll: true }); } catch (e) { /* gone */ }
+  }
+  function openCtx(x, y, items) {
+    closeCtx();
+    const list = items.filter(Boolean);
+    const el = h('div', { class: 'ctx-menu', role: 'menu', 'aria-label': 'Actions', tabindex: '-1' });
+    if (!list.length) el.append(h('div', { class: 'ctx-empty', text: 'No actions available' }));
+    list.forEach((it) => {
+      if (it.sep) { el.append(h('div', { class: 'ctx-sep', role: 'separator' })); return; }
+      el.append(h('button', { class: 'ctx-item' + (it.danger ? ' danger' : ''), type: 'button', role: 'menuitem', tabindex: '-1', text: it.label,
+        onclick: () => { closeCtx(); it.onclick(); } }));
+    });
+    el.addEventListener('keydown', (e) => {
+      const btns = [...el.querySelectorAll('.ctx-item')];
+      const i = btns.indexOf(document.activeElement);
+      if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); closeCtx(); }
+      else if (e.key === 'ArrowDown') { e.preventDefault(); if (btns.length) btns[(i + 1) % btns.length].focus(); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); if (btns.length) btns[(i - 1 + btns.length) % btns.length].focus(); }
+      else if (e.key === 'Home') { e.preventDefault(); if (btns.length) btns[0].focus(); }
+      else if (e.key === 'End') { e.preventDefault(); if (btns.length) btns[btns.length - 1].focus(); }
+      else if (e.key === 'Tab') { e.preventDefault(); closeCtx(); }
+    });
+    ctxState.prev = document.activeElement;
+    document.body.append(el);
+    ctxState.el = el;
+    // keep it inside the viewport
+    const w = el.offsetWidth, hh = el.offsetHeight, m = 8;
+    el.style.left = Math.max(m, Math.min(x, window.innerWidth - w - m)) + 'px';
+    el.style.top = Math.max(m, Math.min(y, window.innerHeight - hh - m)) + 'px';
+    (el.querySelector('.ctx-item') || el).focus({ preventScroll: true });
+  }
+  function deleteTaskFlow(t) {
+    confirmBox('Delete task?', 'This removes the task and its comments for everyone. The log keeps a record. There is no undo.', 'Delete task', () => run(() => C.deleteTask(t.id), 'Task deleted.'), true);
+  }
+  function deleteRoadmapFlow(r) {
+    confirmBox('Delete roadmap?', 'This hides "' + r.title + '" and its tasks for everyone. The activity log is kept and IT can still see it. There is no undo.', 'Delete roadmap', () => run(() => { C.deleteRoadmap(r.id); if (location.hash.indexOf(r.id) >= 0) location.hash = '#/'; }, 'Roadmap deleted.'), true);
+  }
+  function archiveFlow(r) {
+    confirmBox('Archive roadmap?', '"' + r.title + '" becomes read-only for everyone and moves to the Archived section. You can unarchive it at any time.', 'Archive', () => run(() => C.archiveRoadmap(r.id), 'Roadmap archived.'));
+  }
+  function deleteCommentFlow(c) {
+    confirmBox('Delete comment?', 'This removes the comment from the thread. The activity log keeps a note that it was deleted, but not the text.', 'Delete comment',
+      () => run(() => { C.deleteComment(c.id); document.dispatchEvent(new Event('kivo-comments')); }, 'Comment deleted.'), true);
+  }
+  // Only what the current user may do is listed; Core re-checks every action.
+  function ctxItemsFor(kind, id) {
+    const u = C.me(); if (!u) return [];
+    const items = [];
+    if (kind === 'task') {
+      const t = C.taskById(id), r = t && C.roadmapById(t.roadmapId);
+      if (!t || !r || !C.canViewRoadmap(u, r)) return [];
+      items.push({ label: C.canEditTask(u, t) ? 'Open and edit' : 'Open', onclick: () => taskModal(t, r) });
+      C.STATUSES.forEach((s) => {
+        if (s === t.status) return;
+        const m = C.canMove(u, t, s);
+        if (m.ok) items.push({ label: (m.override ? 'Move back to ' : 'Move to ') + C.STATUS_LABEL[s], onclick: () => moveTask(t, s) });
+      });
+      if (C.canAssign(u, r, t)) items.push({ label: 'Assign people', onclick: () => taskModal(t, r) });
+      if (C.canDeleteTask(u, t)) items.push({ sep: true }, { label: 'Delete task', danger: true, onclick: () => deleteTaskFlow(t) });
+    } else if (kind === 'roadmap') {
+      const r = C.roadmapById(id);
+      if (!r || !C.canViewRoadmap(u, r)) return [];
+      items.push({ label: 'Open', onclick: () => go('#/roadmap/' + r.id) });
+      if (C.canManageRoadmap(u, r) && !C.isArchived(r)) items.push({ label: 'Settings', onclick: () => roadmapModal(r) });
+      if (C.canSeeRoadmapLog(u, r)) items.push({ label: 'Logs', onclick: () => go('#/log/roadmap/' + r.id) });
+      if (C.canArchive(u, r)) items.push(C.isArchived(r)
+        ? { label: 'Unarchive', onclick: () => run(() => C.unarchiveRoadmap(r.id), 'Roadmap unarchived.') }
+        : { label: 'Archive', onclick: () => archiveFlow(r) });
+      if (C.canManageRoadmap(u, r) && !C.isArchived(r)) items.push({ sep: true }, { label: 'Delete roadmap', danger: true, onclick: () => deleteRoadmapFlow(r) });
+    } else if (kind === 'person') {
+      const x = C.user(id);
+      if (!x || !C.canSeeProfile(u, x)) return [];
+      items.push({ label: 'Profile & log', onclick: () => go('#/user/' + x.id) });
+      if (C.canResetPassword(u, x)) items.push({ label: x.hash ? 'Send reset link' : 'New invite link', onclick: () => resetModal(x) });
+      if (C.canDeactivate(u, x)) {
+        if (C.isActive(x)) items.push({ sep: true }, { label: 'Deactivate', danger: true, onclick: () => deactivateFlow(x) });
+        else if (C.canReactivate(u, x)) items.push({ sep: true }, { label: 'Reactivate', onclick: () => run(() => C.reactivate(x.id), x.name + ' is active again.') });
+      }
+    } else if (kind === 'comment') {
+      const c = C.db.comments.find((k) => k.id === id);
+      if (c && C.canDeleteComment(u, c)) items.push({ label: 'Delete comment', danger: true, onclick: () => deleteCommentFlow(c) });
+    }
+    return items;
+  }
+  function ctxTarget(el) {
+    const n = el && el.closest ? el.closest('[data-ctx]') : null;
+    if (!n) return null;
+    const parts = n.getAttribute('data-ctx').split(':');
+    return { node: n, kind: parts[0], id: parts.slice(1).join(':') };
+  }
+  const isEditable = (el) => !!(el && el.closest && el.closest('input, textarea, select, [contenteditable=""], [contenteditable="true"]'));
+  document.addEventListener('contextmenu', (e) => {
+    if (e.defaultPrevented) return; // e.g. a touch drag in progress
+    const tg = ctxTarget(e.target);
+    if (!tg || isEditable(e.target)) { closeCtx(); return; }
+    const sel = window.getSelection ? window.getSelection() : null;
+    if (sel && sel.toString().trim() && sel.anchorNode && tg.node.contains(sel.anchorNode)) { closeCtx(); return; } // selected text in this item: browser menu
+    const items = ctxItemsFor(tg.kind, tg.id).filter((it) => it && !it.sep);
+    if (!items.length) { closeCtx(); return; } // nothing this user may do here: leave the browser's menu
+    e.preventDefault();
+    openCtx(e.clientX, e.clientY, ctxItemsFor(tg.kind, tg.id));
+  });
+  document.addEventListener('pointerdown', (e) => {
+    if (ctxState.el && !ctxState.el.contains(e.target)) closeCtx();
+    clearTimeout(ctxState.timer); ctxState.timer = null;
+    // Touch long-press. On a card you can drag, the 280 ms hold picks it up; keeping the finger still until 650 ms
+    // turns that into this menu instead. Moving the finger always means drag or scroll, never the menu.
+    if (e.pointerType !== 'touch' || isEditable(e.target)) return;
+    const tg = ctxTarget(e.target); if (!tg) return;
+    ctxState.sx = e.clientX; ctxState.sy = e.clientY; ctxState.pid = e.pointerId;
+    ctxState.timer = setTimeout(() => {
+      ctxState.timer = null;
+      const items = ctxItemsFor(tg.kind, tg.id);
+      if (!items.some((it) => it && !it.sep)) return; // nothing allowed: no empty menu
+      if (drag && drag.started) endDrag(false);
+      ctxState.swallowUntil = Date.now() + 700;
+      openCtx(ctxState.sx, ctxState.sy, items);
+    }, 650);
+  }, true);
+  document.addEventListener('pointermove', (e) => {
+    if (ctxState.timer && e.pointerId === ctxState.pid && Math.hypot(e.clientX - ctxState.sx, e.clientY - ctxState.sy) > 10) { clearTimeout(ctxState.timer); ctxState.timer = null; }
+  }, true);
+  ['pointerup', 'pointercancel'].forEach((n) => document.addEventListener(n, () => { clearTimeout(ctxState.timer); ctxState.timer = null; }, true));
+  // the click that follows a long-press must not also open the item
+  document.addEventListener('click', (e) => { if (Date.now() < ctxState.swallowUntil) { e.preventDefault(); e.stopPropagation(); } }, true);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && ctxState.el) { e.preventDefault(); e.stopPropagation(); closeCtx(); }
+  }, true);
+  window.addEventListener('scroll', closeCtx, true);
+  window.addEventListener('resize', closeCtx);
+  window.addEventListener('blur', closeCtx);
+
+  // ---------- topbar ----------
+  const go = (hash) => { if (location.hash === hash) render(); else location.hash = hash; };
+  function topbar(o) {
+    const u = C.me(); o = o || {};
+    const left = o.back
+      ? [h('a', { class: 'icon-link', href: o.back, title: 'Back', 'aria-label': 'Back' }, svgIcon(ICON.back, 18)),
+        h('div', { class: 'board-title' }, h('h1', { text: o.title }), o.meta ? h('p', { class: 'roadmap-meta', text: o.meta }) : null)]
+      : [h('a', { class: 'brand', href: '#/' }, 'Kivo', h('span', { class: 'brand-dot' }, '.'), h('span', { class: 'brand-sub' }, ' Office'))];
+    const nav = [];
+    if (u && !o.back) {
+      nav.push(h('a', { class: 'navlink' + (o.active === 'home' ? ' on' : ''), href: '#/' }, u.role === 'it' ? 'Dashboard' : 'Roadmaps'));
+      if (u.role === 'manager') nav.push(h('a', { class: 'navlink' + (o.active === 'team' ? ' on' : ''), href: '#/team' }, 'My team'));
+      if (u.role === 'it') {
+        nav.push(h('a', { class: 'navlink' + (o.active === 'log' ? ' on' : ''), href: '#/log' }, 'Activity'));
+        nav.push(h('a', { class: 'navlink' + (o.active === 'pw' ? ' on' : ''), href: '#/passwords' }, 'Password log'));
+      }
+    }
+    return h('header', { class: 'topbar' + (C.storageOk ? '' : ' has-banner') },
+      C.storageOk ? null : h('div', { class: 'storage-banner', role: 'alert' }, 'Browser storage is full or blocked. Recent changes only live in this tab and will be lost when you close it.'),
+      h('div', { class: 'topbar-left' }, left, nav.length ? h('nav', { class: 'nav' }, nav) : null),
+      h('div', { class: 'topbar-right' }, o.right || [],
+        u ? [
+          h('a', { class: 'user-chip', href: '#/profile', title: 'Your profile' }, avatarEl(u, '', true), h('span', { class: 'chip-name', text: u.name })),
+          o.back ? null : h('button', { class: 'btn-ghost btn-small', onclick: () => confirmBox('Reset demo data?', 'This wipes everything you changed and restores the original demo accounts, roadmaps and logs.', 'Reset demo data', async () => { await C.resetDemo(); toast('Demo data restored.'); go('#/'); }, true), text: 'Reset demo' }),
+          h('button', { class: 'btn-ghost btn-small', onclick: () => { C.logout(); go('#/login'); }, text: 'Log out' }),
+        ] : null));
+  }
+  const pageHead = (eyebrow, title, right) => h('div', { class: 'page-head with-actions' },
+    h('div', null, eyebrow ? h('p', { class: 'page-eyebrow', text: eyebrow }) : null, h('h1', { class: 'page-title', text: title })),
+    right ? h('div', { class: 'head-actions' }, right) : null);
+  const emptyState = (title, text, action) => h('div', { class: 'empty-state' },
+    h('div', { class: 'empty-cloud' }, '☁'), h('h2', { text: title }), h('p', { text }), action || null);
+
+  // ---------- log list ----------
+  const ACTION_CLASS = { login: 'tag-c0', account: 'tag-c1', password: 'tag-c3', roadmap: 'tag-c6', task: 'tag-c5', comment: 'tag-c2', profile: 'tag-c7', security: 'tag-c4', override: 'tag-c2', transfer: 'tag-c6' };
+
+  // ============================================================
+  // PAGES
+  // ============================================================
+
+  // ---------- login ----------
+
+  // ---------- roadmap strip ----------
+  function strip(r, opts) {
+    opts = opts || {};
+    const tasks = C.db.tasks.filter((t) => t.roadmapId === r.id);
+    const n = (s) => tasks.filter((t) => t.status === s).length;
+    const total = tasks.length;
+    const pct = (x) => (total ? (x / total) * 100 : 0);
+    const u = C.me();
+    const mine = tasks.filter((t) => t.assignees.includes(u.id) && t.status !== 'finished').length;
+    const people = r.memberIds.map(C.user).filter(Boolean);
+    const mgr = C.user(r.managerId);
+    const body = [
+      h('div', { class: 'strip-top' }, h('div', { class: 'strip-title' }, h('span', { text: r.title }), r.archivedAt ? h('span', { class: 'archived-pill' }, 'Archived') : null)),
+      r.description ? h('p', { class: 'strip-desc', text: r.description }) : null,
+      h('div', { class: 'strip-runway' },
+        h('div', { class: 'runway', role: 'img', 'aria-label': n('finished') + ' of ' + total + ' tasks finished' },
+          h('div', { class: 'seg seg-finished', style: 'width:' + pct(n('finished')) + '%' }),
+          h('div', { class: 'seg seg-progress', style: 'width:' + pct(n('in_progress')) + '%' })),
+        h('span', { class: 'runway-label', text: n('finished') + '/' + total + ' finished' })),
+      h('div', { class: 'strip-meta' },
+        h('span', null, h('i', { class: 'count-dot planned' }), n('planned') + ' planned'),
+        h('span', null, h('i', { class: 'count-dot in_progress' }), n('in_progress') + ' in progress'),
+        mgr && opts.showManager ? h('span', { text: 'Manager: ' + mgr.name }) : null,
+        u.role === 'member' && mine ? h('span', { class: 'mine', text: plural(mine, 'task', 'tasks') + ' for you' }) : null,
+        h('span', { class: 'strip-members' }, h('span', { class: 'avatar-stack' }, people.slice(0, 5).map((p) => avatarEl(p)),
+          people.length > 5 ? h('span', { class: 'avatar more', text: '+' + (people.length - 5) }) : null))),
+    ];
+    return h('a', { class: 'roadmap-strip' + (r.archivedAt ? ' archived' : ''), href: '#/roadmap/' + r.id, 'data-ctx': 'roadmap:' + r.id }, body);
+  }
+
+  // ---------- archived roadmaps: a collapsible block, separate from IT's "Deleted roadmaps" ----------
+  let archivedOpen = false;
+  function archivedSection(rs, mk) {
+    if (!rs.length) return null;
+    const panel = h('div', { class: 'roadmap-list archived-list', id: 'archived-panel', hidden: !archivedOpen }, rs.map(mk));
+    const btn = h('button', { class: 'archived-toggle' + (archivedOpen ? ' open' : ''), type: 'button', 'aria-expanded': String(archivedOpen), 'aria-controls': 'archived-panel', onclick: () => {
+      archivedOpen = !archivedOpen; panel.hidden = !archivedOpen; btn.setAttribute('aria-expanded', String(archivedOpen)); btn.classList.toggle('open', archivedOpen);
+    } }, h('span', { class: 'chev', 'aria-hidden': 'true' }, '\u25B8'), 'Archived ', h('span', { class: 'section-count', text: String(rs.length) }));
+    return h('div', { class: 'archived-block' }, btn, panel);
+  }
+
+  // ---------- home ----------
+  function pageHome() {
+    const u = C.me();
+    if (u.role === 'it') return pageIT();
+    const all = C.visibleRoadmaps(u);
+    const rms = all.filter((r) => !r.archivedAt);
+    const arch = all.filter((r) => r.archivedAt);
+    const newBtn = u.role === 'manager' ? h('button', { class: 'btn', onclick: () => roadmapModal(null), text: '+ New roadmap' }) : null;
+    return h('div', null, topbar({ active: 'home' }),
+      h('main', { class: 'page' },
+        pageHead(C.ROLE_LABEL[u.role], 'Your roadmaps', newBtn),
+        rms.length
+          ? h('div', { class: 'roadmap-list' }, rms.map((r) => strip(r)))
+          : emptyState(arch.length ? 'No active roadmaps' : 'Nothing here yet', u.role === 'manager' ? 'Create your first roadmap and add your team to it.' : 'Roadmaps your manager adds you to will show up here.', newBtn),
+        archivedSection(arch, (r) => strip(r))));
+  }
+
+  // ---------- IT dashboard ----------
+
+  // ---------- account modals ----------
+
+  // ---------- roadmap create / settings ----------
+
+  // ---------- roadmap board ----------
+
+  // ---------- task modal ----------
+
+  // ---------- team (manager) ----------
+
+  // ---------- user page ----------
+
+  function avatarEl(u, size, withPresence) {
+    const off = !!u && !C.isActive(u);
+    const a = h('span', { class: 'avatar' + (size ? ' ' + size : '') + (off ? ' inactive' : ''), title: u ? C.dn(u) : 'Unknown' });
+    if (!u) { a.textContent = '?'; return a; }
+    if (C.safeImage(u.avatar)) {
+      a.style.backgroundImage = 'url("' + u.avatar + '")';
+      a.classList.add('has-img');
+      a.setAttribute('role', 'img');
+      a.setAttribute('aria-label', C.dn(u));
+    } else a.textContent = initials(u.name);
+    if (withPresence && !off) a.append(h('span', { class: 'presence p-' + u.presence, title: C.PRESENCE_LABEL[u.presence] }));
+    return a;
+  }
+
+  function logList(entries, opts) {
+    opts = opts || {};
+    const note = h('p', { class: 'log-note' }, 'This log is append-only. Nobody can edit or delete entries, IT admins included.');
+    if (!entries.length) return h('div', null, note, h('p', { class: 'section-empty', text: opts.empty || 'Nothing logged yet.' }));
+    const rows = entries.map((l) => {
+      const actor = l.actorId ? C.user(l.actorId) : null;
+      const row = h('li', { class: 'log-row' },
+        h('time', { class: 'log-time', datetime: new Date(l.at).toISOString(), title: new Date(l.at).toString(), text: fmtTime(l.at) }),
+        h('span', { class: 'log-chip task-tag ' + (ACTION_CLASS[l.action] || 'tag-c0'), text: l.action }),
+        h('span', { class: 'log-text' },
+          opts.hideActor ? null : h('strong', null, actor ? C.dn(actor) : 'Unknown visitor'), opts.hideActor ? null : ' ', l.text));
+      row.dataset.q = ((actor ? actor.name : '') + ' ' + l.action + ' ' + l.text).toLowerCase();
+      return row;
+    });
+    const list = h('ul', { class: 'log-list' }, rows);
+    const count = h('span', { class: 'log-count' });
+    const upd = () => { const n = rows.filter((r) => !r.hidden).length; count.textContent = plural(n, 'entry', 'entries'); };
+    const search = h('input', {
+      type: 'search', class: 'log-search', placeholder: 'Filter this log', 'aria-label': 'Filter this log',
+      oninput: () => { const q = search.value.trim().toLowerCase(); rows.forEach((r) => { r.hidden = !!q && !r.dataset.q.includes(q); }); upd(); },
+    });
+    upd();
+    return h('div', { class: 'log-wrap' }, note, h('div', { class: 'log-tools' }, search, count), list);
+  }
+
+  // ---------- login ----------
+  function pageLogin() {
+    const err = h('p', { class: 'form-error', role: 'alert' });
+    const un = h('input', { type: 'text', id: 'l-user', autocomplete: 'username', placeholder: 'your username' });
+    const pw = h('input', { type: 'password', id: 'l-pass', autocomplete: 'current-password', placeholder: 'your password' });
+    const form = h('form', { class: 'auth-form', onsubmit: async (e) => {
+      e.preventDefault(); err.textContent = '';
+      try { await C.login(un.value, pw.value); go('#/'); } catch (ex) { err.textContent = ex.message; pw.select(); }
+    } },
+      h('div', { class: 'form-group' }, h('label', { for: 'l-user' }, 'Username'), un),
+      h('div', { class: 'form-group' }, h('label', { for: 'l-pass' }, 'Password'), pw),
+      err, h('button', { class: 'btn auth-submit', type: 'submit' }, 'Sign in'));
+    const groups = ['it', 'manager', 'member'].map((role) => {
+      const us = C.db.users.filter((x) => x.role === role && x.hash);
+      return h('div', { class: 'switch-group' }, h('p', { class: 'switch-label', text: C.ROLE_LABEL[role] }),
+        h('div', { class: 'switch-list' }, us.map((x) => h('button', { class: 'switch-btn', type: 'button', disabled: !C.isActive(x), title: C.isActive(x) ? '' : 'Deactivated', onclick: () => { try { C.quickLogin(x.id); go('#/'); } catch (ex) { toast(ex.message, true); } } },
+          avatarEl(x, '', true), h('span', { class: 'switch-name', text: C.dn(x) })))));
+    });
+    // demo links to the invite flow; hidden once used
+    const inviteLinks = h('div', { class: 'switch-list' });
+    [['Open a fresh invite (Priya Nair)', C.DEMO_INVITE_TOKEN], ['Open an expired invite', C.DEMO_EXPIRED_TOKEN]].forEach(([label, tok]) => {
+      C.inviteInfo(tok).then((info) => {
+        if (info.valid || info.reason === 'expired') inviteLinks.append(h('a', { class: 'switch-btn', href: '#/invite/' + tok }, label));
+      });
+    });
+    return h('div', { class: 'auth-body' }, h('div', { class: 'auth-card wide' },
+      h('div', { class: 'auth-logo' }, 'Kivo', h('span', { class: 'brand-dot' }, '.'), h('span', { class: 'brand-sub' }, ' Office')),
+      h('h1', { class: 'auth-title' }, 'Welcome back'),
+      h('p', { class: 'auth-subtitle' }, 'Sign in to your team\'s roadmaps'),
+      form,
+      h('div', { class: 'demo-box' },
+        h('p', { class: 'demo-title' }, 'Demo mode: jump straight in'),
+        h('p', { class: 'demo-note' }, 'Pick an account to sign in without typing. The demo accounts all use the password ', h('code', null, C.DEMO_PASSWORD), '. New accounts you create get an invite link instead.'),
+        groups,
+        h('p', { class: 'switch-label', text: 'Try the invite flow' }), inviteLinks),
+      !C.storageOk ? h('p', { class: 'notice' }, 'Browser storage is blocked here, so changes only last until you close this tab.') : null,
+      h('p', { class: 'auth-note' }, h('button', { class: 'linklike', type: 'button', onclick: () => confirmBox('Reset demo data?', 'This restores the original demo accounts, roadmaps and logs.', 'Reset demo data', async () => { await C.resetDemo(); toast('Demo data restored.'); render(); }, true) }, 'Reset demo data'))));
+  }
+
+  // ---------- invite page (opened from a link, signed in or not) ----------
+  function pageInvite(token) {
+    const box = h('div', { class: 'auth-card wide' },
+      h('div', { class: 'auth-logo' }, 'Kivo', h('span', { class: 'brand-dot' }, '.'), h('span', { class: 'brand-sub' }, ' Office')),
+      h('p', { class: 'auth-subtitle', text: 'Checking your link...' }));
+    const wrap = h('div', { class: 'auth-body' }, box);
+    const REASON = {
+      used: 'This link has already been used. Each link works once. If you forgot your password, ask your manager or IT admin for a new reset link.',
+      expired: 'This link has expired. Links last 48 hours. Ask for a new one.',
+      replaced: 'A newer link was sent to you, so this one no longer works. Use the latest link.',
+      deactivated: 'This account has been deactivated.',
+      unknown: 'We don\'t recognise this link. Check that you copied all of it, or ask for a new one.',
+    };
+    C.inviteInfo(token).then((info) => {
+      const logo = box.firstChild; clear(box); box.append(logo);
+      if (!info.valid) {
+        box.append(h('h1', { class: 'auth-title', text: 'This link doesn\'t work' }), h('p', { class: 'auth-subtitle', text: REASON[info.reason] || REASON.unknown }),
+          h('a', { class: 'btn auth-submit', href: '#/login' }, 'Go to sign in'));
+        return;
+      }
+      const cur = C.me();
+      const pw = h('input', { type: 'password', id: 'i-pw', autocomplete: 'new-password', placeholder: 'At least 6 characters' });
+      const pw2 = h('input', { type: 'password', id: 'i-pw2', autocomplete: 'new-password', placeholder: 'Type it again' });
+      const err = h('p', { class: 'form-error', role: 'alert' });
+      addAll(box,
+        h('h1', { class: 'auth-title', text: info.kind === 'invite' ? 'Welcome, ' + info.name.split(' ')[0] : 'Set a new password' }),
+        h('p', { class: 'auth-subtitle', text: info.kind === 'invite' ? 'Choose a password to activate your account. Your username is ' + info.username + '.' : 'Choose a new password for ' + info.username + '.' }),
+        cur && cur.username !== info.username ? h('p', { class: 'notice', text: 'You are signed in as ' + C.dn(cur) + '. Continuing will switch you to ' + info.name + '.' }) : null,
+        h('form', { class: 'auth-form', onsubmit: async (e) => {
+          e.preventDefault(); err.textContent = '';
+          if (pw.value !== pw2.value) { err.textContent = 'The two passwords don\'t match.'; return; }
+          try { await C.completeInvite(token, pw.value); toast('Password set. You are signed in.'); go('#/'); } catch (ex) { err.textContent = ex.message; }
+        } },
+          h('div', { class: 'form-group' }, h('label', { for: 'i-pw' }, 'New password'), pw),
+          h('div', { class: 'form-group' }, h('label', { for: 'i-pw2' }, 'Repeat password'), pw2),
+          err, h('button', { class: 'btn auth-submit', type: 'submit' }, info.kind === 'invite' ? 'Activate my account' : 'Save new password')),
+        h('p', { class: 'auth-note', text: 'Only you ever see this password. Nobody at Kivo, not even IT, can read it. This link works once and expires ' + fmtTime(info.expiresAt) + '.' }));
+      pw.focus();
+    }).catch(() => { clear(box); box.append(h('p', { class: 'form-error', text: 'Could not check this link.' })); });
+    return wrap;
+  }
+
+  // ---------- IT dashboard ----------
+  const expanded = new Set();
+  function roleLine(x) {
+    if (!C.isActive(x)) return h('span', { class: 'badge-off' }, 'Deactivated');
+    if (!x.hash) {
+      const p = C.pendingInviteFor(x.id);
+      return h('span', { class: 'badge-pending' }, p ? 'Invite pending, expires ' + fmtTime(p.expiresAt) : 'Invite expired');
+    }
+    return presenceLine(x);
+  }
+  function personRow(x) {
+    const u = C.me();
+    return h('div', { class: 'person-row' + (C.isActive(x) ? '' : ' off'), 'data-ctx': 'person:' + x.id },
+      avatarEl(x, '', true),
+      h('div', { class: 'person-main' }, h('a', { class: 'person-name', href: '#/user/' + x.id, text: C.dn(x) }),
+        h('span', { class: 'person-sub' }, '@' + x.username, ' · ', roleLine(x))),
+      h('div', { class: 'person-actions' },
+        h('a', { class: 'btn-ghost btn-small', href: '#/user/' + x.id }, 'Profile & log'),
+        C.canResetPassword(u, x) ? h('button', { class: 'btn-ghost btn-small', onclick: () => resetModal(x), text: x.hash ? 'Send reset link' : 'New invite link' }) : null,
+        C.canDeactivate(u, x) ? activeToggle(x) : null));
+  }
+  function activeToggle(x) {
+    if (!C.isActive(x) && !C.canReactivate(C.me(), x)) return h('span', { class: 'card-note', text: 'Deactivated by IT' });
+    return C.isActive(x)
+      ? h('button', { class: 'btn-danger-ghost btn-small', onclick: () => deactivateFlow(x), text: 'Deactivate' })
+      : h('button', { class: 'btn-ghost btn-small', onclick: () => run(() => C.reactivate(x.id), x.name + ' is active again.'), text: 'Reactivate' });
+  }
+  function deactivateFlow(x) {
+    const b = C.deactivationBlockers(x.id);
+    if (b.includes('last-it')) { toast('This is the last active IT admin. Create or reactivate another IT admin first.', true); return; }
+    if (b.includes('transfer')) { transferModal(x); return; }
+    confirmBox('Deactivate ' + x.name + '?', x.name + ' will not be able to sign in, and any open session ends now. Their open tasks become unassigned and are flagged for the roadmap owners. Nothing is deleted, and you can reactivate the account later.', 'Deactivate', () => run(() => C.deactivate(x.id), x.name + ' was deactivated.'), true);
+  }
+  function transferModal(from) {
+    const targets = C.db.users.filter((m) => m.role === 'manager' && C.isActive(m) && m.id !== from.id);
+    const rs = C.db.roadmaps.filter((r) => r.managerId === from.id && !r.deletedAt).length;
+    const ms = C.db.users.filter((m) => m.role === 'member' && m.createdBy === from.id).length;
+    const sel = h('select', { id: 'tr-to' }, targets.map((m) => h('option', { value: m.id, text: m.name })));
+    const err = h('p', { class: 'form-error', role: 'alert' });
+    openModal({
+      title: 'Transfer before deactivating', small: true,
+      body: h('div', null,
+        h('p', { class: 'card-note', text: from.name + ' still owns ' + plural(rs, 'roadmap', 'roadmaps') + ' and has ' + plural(ms, 'team member', 'team members') + '. Pick the manager who takes them over. This is logged.' }),
+        targets.length ? h('div', { class: 'form-group' }, h('label', { for: 'tr-to' }, 'New owner'), sel) : h('p', { class: 'form-error', text: 'There is no other active manager. Create one first.' }), err),
+      footer: (close) => [h('button', { class: 'btn-ghost', onclick: close, text: 'Cancel' }),
+        targets.length ? h('button', { class: 'btn', text: 'Transfer and deactivate', onclick: async () => {
+          try { C.transferManager(from.id, sel.value); C.deactivate(from.id); close(); toast('Transferred, and ' + from.name + ' was deactivated.'); render(); } catch (e) { err.textContent = e.message; render(); }
+        } }) : null],
+    });
+  }
+  function itRoadmapCard(r) {
+    return h('div', { class: 'it-roadmap' },
+      strip(r, { showManager: true }),
+      h('div', { class: 'it-roadmap-actions' },
+        h('a', { class: 'btn-ghost btn-small', href: '#/log/roadmap/' + r.id }, 'Logs'),
+        r.archivedAt ? h('button', { class: 'btn-ghost btn-small', onclick: () => run(() => C.unarchiveRoadmap(r.id), 'Roadmap unarchived.'), text: 'Unarchive' })
+          : h('button', { class: 'btn-ghost btn-small', onclick: () => archiveFlow(r), text: 'Archive' }),
+        h('a', { class: 'btn-ghost btn-small', href: '#/roadmap/' + r.id }, 'Open')));
+  }
+  function pageIT() {
+    const rms = C.db.roadmaps.filter((r) => !r.deletedAt && !r.archivedAt);
+    const archivedRms = C.db.roadmaps.filter((r) => !r.deletedAt && r.archivedAt);
+    const deleted = C.deletedRoadmaps();
+    const managers = C.db.users.filter((x) => x.role === 'manager');
+    const admins = C.db.users.filter((x) => x.role === 'it');
+    const left = h('section', { class: 'it-col' },
+      h('div', { class: 'col-head' }, h('h2', { text: 'Roadmaps' }), h('span', { class: 'section-count', text: String(rms.length) })),
+      rms.length ? h('div', { class: 'roadmap-list' }, rms.map(itRoadmapCard)) : emptyState('No roadmaps yet', 'Managers create roadmaps from their own dashboard.'),
+      archivedSection(archivedRms, itRoadmapCard),
+      deleted.length ? [h('div', { class: 'col-head sp' }, h('h2', { text: 'Deleted roadmaps' }), h('span', { class: 'section-count', text: String(deleted.length) })),
+        h('p', { class: 'card-note', text: 'Deleted roadmaps disappear for everyone, but their log stays.' }),
+        deleted.map((r) => h('div', { class: 'deleted-row' }, h('div', { class: 'person-main' }, h('span', { class: 'person-name', text: r.title }),
+          h('span', { class: 'person-sub', text: 'Deleted roadmap · was managed by ' + C.dn(C.user(r.managerId)) + ' · ' + fmtTime(r.deletedAt) })),
+          h('a', { class: 'btn-ghost btn-small', href: '#/log/roadmap/' + r.id }, 'Logs')))] : null);
+
+    const right = h('section', { class: 'it-col' },
+      h('div', { class: 'col-head' }, h('h2', { text: 'Managers' }), h('span', { class: 'section-count', text: String(managers.length) }),
+        h('button', { class: 'btn btn-small push-right', onclick: () => accountModal('manager'), text: '+ Invite manager' })),
+      managers.length ? h('div', { class: 'mgr-list' }, managers.map((m) => managerCard(m))) : emptyState('No managers yet', 'Invite a manager to get started.'),
+      h('div', { class: 'col-head sp' }, h('h2', { text: 'IT admins' }), h('span', { class: 'section-count', text: String(admins.length) }),
+        h('button', { class: 'btn-ghost btn-small push-right', onclick: () => accountModal('it'), text: '+ Invite IT admin' })),
+      h('div', { class: 'mgr-card' }, h('div', { class: 'mgr-panel static' }, admins.map((x) => personRow(x)))));
+    return h('div', null, topbar({ active: 'home' }),
+      h('main', { class: 'page wide' }, pageHead('IT admin', 'Everything in Kivo Office'), h('div', { class: 'it-grid' }, left, right)));
+  }
+  function managerCard(m) {
+    const members = C.db.users.filter((x) => x.role === 'member' && x.createdBy === m.id);
+    const open = expanded.has(m.id);
+    const panelId = 'mp-' + m.id;
+    const panel = h('div', { class: 'mgr-panel', id: panelId, hidden: !open },
+      members.length ? members.map((x) => personRow(x))
+        : h('p', { class: 'access-empty', text: 'This manager has not invited any team members yet.' }));
+    const head = h('button', { class: 'mgr-head', 'aria-expanded': String(open), 'aria-controls': panelId, onclick: (e) => {
+      const nowOpen = panel.hidden; panel.hidden = !nowOpen; e.currentTarget.setAttribute('aria-expanded', String(nowOpen));
+      if (nowOpen) expanded.add(m.id); else expanded.delete(m.id);
+      e.currentTarget.classList.toggle('open', nowOpen);
+    } },
+      h('span', { class: 'chev', 'aria-hidden': 'true' }, '▸'),
+      avatarEl(m, '', true),
+      h('span', { class: 'person-main' }, h('span', { class: 'person-name', text: C.dn(m) }), h('span', { class: 'person-sub' }, '@' + m.username + ' · ' + plural(members.length, 'team member', 'team members') + ' · ', roleLine(m))));
+    head.classList.toggle('open', open);
+    const u = C.me();
+    return h('div', { class: 'mgr-card' + (C.isActive(m) ? '' : ' off') },
+      h('div', { class: 'mgr-top', 'data-ctx': 'person:' + m.id }, head,
+        h('div', { class: 'mgr-actions' },
+          h('a', { class: 'btn-ghost btn-small', href: '#/user/' + m.id }, 'Profile & log'),
+          C.canResetPassword(u, m) ? h('button', { class: 'btn-ghost btn-small', onclick: () => resetModal(m), text: m.hash ? 'Send reset link' : 'New invite link' }) : null,
+          C.canDeactivate(u, m) ? activeToggle(m) : null)),
+      panel);
+  }
+
+  // ---------- account modals: no passwords are typed or shown; links are ----------
+  function linkModal(who, token, kind, expiresAt) {
+    const link = location.href.split('#')[0] + '#/invite/' + token;
+    const input = h('input', { type: 'text', readonly: true, class: 'share-link-input', 'aria-label': 'Link', value: link });
+    const fb = h('p', { class: 'assignee-hint', role: 'status' });
+    openModal({
+      title: kind === 'invite' ? 'Invite link ready' : 'Reset link ready',
+      body: h('div', null,
+        h('p', { class: 'card-note', text: 'Send this link to ' + who + '. They open it and choose their own password, so nobody else ever sees it. The link works once and expires ' + fmtTime(expiresAt) + '.' }),
+        h('div', { class: 'copy-box' }, input,
+          h('button', { class: 'btn btn-small', type: 'button', onclick: async () => {
+            try { await navigator.clipboard.writeText(link); fb.textContent = 'Copied.'; } catch (e) { input.select(); fb.textContent = 'Press Ctrl+C to copy the selected link.'; }
+          }, text: 'Copy link' })),
+        fb,
+        h('p', { class: 'info-note', text: 'This is the only time the link is shown. Kivo stores just a hash of it, so you can\'t look it up later. Lost it? Issue a new one.' }),
+        h('p', { class: 'card-note' }, 'Prototype: there is no email, so open it yourself: ', h('a', { href: '#/invite/' + token, onclick: () => { modals.slice().forEach((m) => m.close()); } }, 'open the link here'), '.')),
+      footer: (close) => [h('button', { class: 'btn', onclick: close, text: 'Done' })],
+    });
+    input.focus(); input.select();
+  }
+  function accountModal(role) {
+    const name = h('input', { type: 'text', id: 'a-name', maxlength: 40, placeholder: 'e.g. Sam Carter' });
+    const un = h('input', { type: 'text', id: 'a-user', maxlength: 24, placeholder: 'e.g. sam', autocomplete: 'off' });
+    const err = h('p', { class: 'form-error', role: 'alert' });
+    const label = { manager: 'manager', member: 'team member', it: 'IT admin' }[role];
+    let busy = false;
+    const submit = async (close) => {
+      if (busy) return; busy = true; err.textContent = '';
+      try {
+        const r = await C.createAccount(role, { name: name.value, username: un.value });
+        close(); render(); linkModal(r.user.name, r.token, 'invite', r.expiresAt);
+      } catch (e) { err.textContent = e.message; } finally { busy = false; }
+    };
+    openModal({
+      title: 'Invite ' + (role === 'it' ? 'an ' : 'a ') + label,
+      body: h('form', { onsubmit: (e) => e.preventDefault() },
+        h('div', { class: 'form-group' }, h('label', { for: 'a-name' }, 'Name'), name),
+        h('div', { class: 'form-group' }, h('label', { for: 'a-user' }, 'Username'), un),
+        h('p', { class: 'card-note', text: 'You don\'t choose a password. Kivo makes a one-time invite link for you to send; the new person sets their own password.' }), err),
+      footer: (close) => {
+        un.addEventListener('keydown', (e) => { if (e.key === 'Enter') submit(close); });
+        return [h('button', { class: 'btn-ghost', onclick: close, text: 'Cancel' }), h('button', { class: 'btn', onclick: () => submit(close), text: 'Create invite link' })];
+      },
+    });
+  }
+  function resetModal(target) {
+    const pending = !target.hash;
+    confirmBox(pending ? 'New invite link?' : 'Send a reset link?',
+      pending ? target.name + ' has not activated the account yet. A new link replaces the previous one.'
+        : 'This makes a one-time link for ' + target.name + ' to choose a new password. Their current password keeps working until they use it. Any earlier unused link stops working.',
+      'Create link', async () => {
+        try { const r = await C.issueLink(target.id); render(); linkModal(target.name, r.token, r.kind, r.expiresAt); }
+        catch (e) { toast(e.message, true); }
+      });
+  }
+
+  // ---------- roadmap create / settings ----------
+  function roadmapModal(r) {
+    const u = C.me();
+    const pool = C.addablePeople(u).concat(r ? r.memberIds.map(C.user).filter((x) => x && !C.isActive(x)) : []);
+    const name = h('input', { type: 'text', id: 'rm-name', maxlength: 80, value: r ? r.title : '', placeholder: 'e.g. Spring campaign' });
+    const desc = h('textarea', { id: 'rm-desc', rows: 3, maxlength: 400, placeholder: 'What is this roadmap for?' });
+    desc.value = r ? r.description : '';
+    const err = h('p', { class: 'form-error', role: 'alert' });
+    const memSel = new Set(r ? r.memberIds : C.managedMembers(u).filter(C.isActive).map((m) => m.id));
+    const crSel = new Set(r ? r.creators : []);
+    let mode = r ? r.creatorMode : 'manager';
+    const memBox = h('div', { class: 'assignee-picker' });
+    const crBox = h('div', { class: 'assignee-picker' });
+    const crWrap = h('div', { class: 'form-group' }, h('label', null, 'Task handlers'), crBox);
+    const chip = (m, set, after) => {
+      const cb = h('input', { type: 'checkbox', checked: set.has(m.id), onchange: () => { if (cb.checked) set.add(m.id); else set.delete(m.id); lab.classList.toggle('selected', cb.checked); after(); } });
+      const lab = h('label', { class: 'assignee-chip' + (set.has(m.id) ? ' selected' : '') }, cb, avatarEl(m), C.dn(m) + (m.role === 'manager' ? ' (manager)' : ''));
+      return lab;
+    };
+    const paintCr = () => {
+      clear(crBox);
+      const avail = pool.filter((m) => memSel.has(m.id));
+      avail.forEach((m) => crBox.append(chip(m, crSel, () => {})));
+      if (!avail.length) crBox.append(h('span', { class: 'assignee-hint', text: 'Add people to the roadmap first.' }));
+      crWrap.hidden = mode !== 'chosen';
+    };
+    const paintMem = () => {
+      clear(memBox);
+      pool.forEach((m) => memBox.append(chip(m, memSel, () => { [...crSel].forEach((id) => { if (!memSel.has(id)) crSel.delete(id); }); paintCr(); })));
+      if (!pool.length) memBox.append(h('span', { class: 'assignee-hint', text: 'There is nobody to add yet. Invite team members under "My team".' }));
+    };
+    const radio = (val, title, sub) => {
+      const inp = h('input', { type: 'radio', name: 'cmode', value: val, checked: mode === val, onchange: () => { mode = val; paintCr(); } });
+      return h('label', { class: 'radio-row' }, inp, h('span', null, h('strong', { text: title }), h('span', { class: 'radio-sub', text: sub })));
+    };
+    paintMem(); paintCr();
+    const save = async (close) => {
+      err.textContent = '';
+      const data = { title: name.value, description: desc.value, memberIds: [...memSel], creatorMode: mode, creators: [...crSel] };
+      try {
+        const res = r ? C.updateRoadmap(r.id, data) : C.createRoadmap(data);
+        close(); toast(r ? 'Roadmap saved.' : 'Roadmap created.');
+        if (!r) go('#/roadmap/' + res.id); else render();
+      } catch (e) { err.textContent = e.message; }
+    };
+    openModal({
+      title: r ? 'Roadmap settings' : 'New roadmap',
+      body: h('div', null,
+        h('div', { class: 'form-group' }, h('label', { for: 'rm-name' }, 'Name'), name),
+        h('div', { class: 'form-group' }, h('label', { for: 'rm-desc' }, 'Description'), desc),
+        h('div', { class: 'form-group' }, h('label', null, 'Who is on this roadmap?'), memBox,
+          h('span', { class: 'assignee-hint', text: 'Any active team member or manager, not only your own team. You are the owner.' })),
+        h('div', { class: 'form-group' }, h('label', null, 'Who can create tasks?'),
+          radio('everyone', 'Everyone on the roadmap', 'Anyone on it can add tasks and assign people to their own tasks.'),
+          radio('manager', 'Manager only', 'Only you create tasks and assign people.'),
+          radio('chosen', 'Manager + chosen task handlers', 'You and the people you pick below.')),
+        crWrap, err),
+      footer: (close) => [
+        r ? h('button', { class: 'btn-danger-ghost push-left', onclick: () => confirmBox('Delete roadmap?', 'This hides "' + r.title + '" and its tasks for everyone. The activity log is kept and IT can still see it. There is no undo.', 'Delete roadmap', async () => { close(); await run(() => { C.deleteRoadmap(r.id); location.hash = '#/'; }, 'Roadmap deleted.'); }, true), text: 'Delete roadmap' }) : null,
+        h('button', { class: 'btn-ghost', onclick: close, text: 'Cancel' }),
+        h('button', { class: 'btn', onclick: () => save(close), text: r ? 'Save settings' : 'Create roadmap' }),
+      ],
+    });
+  }
+
+  // ---------- roadmap board ----------
+  let viewMode = 'list';
+  try { viewMode = localStorage.getItem('kivo-office-view') === 'board' ? 'board' : 'list'; } catch (e) { /* blocked */ }
+  function creatorsLabel(r) {
+    if (r.creatorMode === 'everyone') return 'Everyone on the roadmap can create tasks';
+    if (r.creatorMode === 'manager') return 'Tasks created by the owner only';
+    const n = r.creators.map(C.user).filter(Boolean).map((x) => C.dn(x));
+    return 'Owner + task handlers' + (n.length ? ': ' + n.join(', ') : '');
+  }
+  // One entry point for every status change (drag, menu, modal): confirm first, logic enforces the rules.
+  const need2 = (c, msg) => { if (!c) throw new Error(msg); };
+  function moveTask(t, to, afterOk) {
+    const from = t.status; // captured now: t is the live task, so it changes under an open dialog
+    const m = C.canMove(C.me(), t, to);
+    if (!m.ok) { toast(m.reason, true); return; }
+    confirmBox('Move task?', 'Move ' + t.title + ' to ' + C.STATUS_LABEL[to] + '? This can\'t be undone.', 'Move task',
+      () => run(() => {
+        const now = C.taskById(t.id);
+        need2(now && now.status === from, 'This task changed while the dialog was open. Nothing was moved.');
+        return C.updateTask(t.id, { status: to });
+      }, 'Moved to ' + C.STATUS_LABEL[to].toLowerCase() + '.').then((ok) => { if (ok && afterOk) afterOk(); }));
+  }
+  function pageRoadmap(rid) {
+    const u = C.me(); const r = C.roadmapById(rid);
+    if (!r || !C.canViewRoadmap(u, r)) return pageMissing('That roadmap doesn\'t exist, or you don\'t have access to it.');
+    const mgr = C.user(r.managerId);
+    const archived = C.isArchived(r);
+    const tasks = C.db.tasks.filter((t) => t.roadmapId === r.id);
+    const creator = C.isCreator(u, r);
+    const people = [mgr].concat(r.memberIds.map(C.user)).filter(Boolean);
+    const seg = h('div', { class: 'view-seg', role: 'group', 'aria-label': 'Layout' },
+      ['list', 'board'].map((m) => h('button', { type: 'button', class: viewMode === m ? 'active' : '', 'aria-pressed': String(viewMode === m), text: m === 'list' ? 'List' : 'Board', onclick: () => {
+        viewMode = m; try { localStorage.setItem('kivo-office-view', m); } catch (e) { /* blocked */ } render();
+      } })));
+    const right = [
+      h('div', { class: 'avatar-stack', title: people.map((p) => C.dn(p)).join(', ') }, people.slice(0, 5).map((p) => avatarEl(p))),
+      seg,
+      C.canSeeRoadmapLog(u, r) ? h('a', { class: 'btn-ghost btn-small', href: '#/log/roadmap/' + r.id }, 'Logs') : null,
+      C.canManageRoadmap(u, r) && !archived ? h('button', { class: 'btn-ghost btn-small', onclick: () => roadmapModal(r), text: 'Settings' }) : null,
+      C.canArchive(u, r) && !archived ? h('button', { class: 'btn-ghost btn-small', onclick: () => archiveFlow(r), text: 'Archive' }) : null,
+      creator ? h('button', { class: 'btn', onclick: () => taskModal(null, r), text: '+ Add task' }) : null,
+    ];
+    const notes = [];
+    const banner = archived ? h('div', { class: 'archived-banner', role: 'status' },
+      h('div', null, h('strong', { text: 'Archived. ' }), 'This roadmap is read-only: nobody can add, edit, move or assign tasks, or comment.'),
+      C.canArchive(u, r) ? h('button', { class: 'btn btn-small', onclick: () => run(() => C.unarchiveRoadmap(r.id), 'Roadmap unarchived.'), text: 'Unarchive' }) : null) : null;
+    const flagged = tasks.filter((t) => (t.flags || []).length && !t.assignees.length);
+    if (C.isOwner(u, r) && flagged.length) notes.push(plural(flagged.length, 'task needs', 'tasks need') + ' a new assignee because someone was deactivated or removed.');
+    if (archived) { /* the banner says it */ } else if (u.role === 'it') notes.push('You are viewing as an IT admin. You can read and comment, but only assigned people edit tasks.');
+    else if (!creator) notes.push('You can edit the tasks assigned to you. Everything else is read-only, but you can comment on any task.');
+    const sections = C.STATUSES.map((s) => {
+      const list = tasks.filter((t) => t.status === s);
+      const rows = h('div', { class: 'task-rows' }, list.map((t) => taskRow(t, r)));
+      return h('section', { class: 'status-section', 'data-status': s },
+        h('div', { class: 'section-header' }, h('span', { class: 'section-dot ' + s }), h('h2', { text: C.STATUS_LABEL[s] }), h('span', { class: 'section-count', text: String(list.length) })),
+        rows,
+        list.length ? null : h('p', { class: 'section-empty', text: { planned: 'Nothing planned yet.', in_progress: 'Nothing is being worked on right now.', finished: 'Nothing finished yet.' }[s] }));
+    });
+    return h('div', null,
+      topbar({ back: '#/', title: r.title, meta: (archived ? 'Archived · ' : '') + 'Owner: ' + C.dn(mgr) + ' · ' + creatorsLabel(r), right }),
+      h('main', { class: 'page' + (viewMode === 'board' ? ' wide' : '') },
+        banner,
+        r.description ? h('p', { class: 'roadmap-desc', text: r.description }) : null,
+        notes.map((n) => h('p', { class: 'info-note', text: n })),
+        tasks.length || creator || archived ? null : emptyState('No tasks yet', 'The people who create tasks on this roadmap haven\'t added any.'),
+        h('div', { class: viewMode === 'board' ? 'board' : 'list-view' }, sections)));
+  }
+
+  // ---------- drag (pointer events: mouse, pen and touch) ----------
+  let drag = null;
+  let suppressClick = false;
+  function clearDropMarks() { document.querySelectorAll('.drop, .drop-no').forEach((n) => n.classList.remove('drop', 'drop-no')); }
+  function endDrag(commit) {
+    const d = drag; drag = null;
+    if (!d) return;
+    clearTimeout(d.timer);
+    if (d.started) {
+      d.ghost.remove(); d.row.classList.remove('drag-src'); document.body.classList.remove('dragging');
+      clearDropMarks();
+      suppressClick = true; setTimeout(() => { suppressClick = false; }, 150);
+      if (commit && d.to) moveTask(d.t, d.to);
+    }
+  }
+  function startDrag(d, x, y) {
+    if (!drag || drag !== d || d.started) return;
+    d.started = true;
+    const rect = d.row.getBoundingClientRect();
+    d.offX = x - rect.left; d.offY = y - rect.top;
+    d.ghost = d.row.cloneNode(true);
+    d.ghost.classList.add('drag-ghost'); d.ghost.removeAttribute('id'); d.ghost.style.width = rect.width + 'px';
+    d.row.parentNode.append(d.ghost);
+    d.row.classList.add('drag-src'); document.body.classList.add('dragging');
+    moveGhost(d, x, y);
+  }
+  function moveGhost(d, x, y) {
+    d.ghost.style.transform = 'translate(' + (x - d.offX) + 'px,' + (y - d.offY) + 'px)';
+    const el = document.elementFromPoint(x, y);
+    const sec = el && el.closest ? el.closest('.status-section') : null;
+    clearDropMarks();
+    d.to = null;
+    if (sec) {
+      const to = sec.dataset.status;
+      const m = C.canMove(C.me(), d.t, to);
+      if (to !== d.t.status) sec.classList.add(m.ok ? 'drop' : 'drop-no');
+      if (m.ok) d.to = to;
+    }
+    if (y < 70) window.scrollBy(0, -14); else if (y > window.innerHeight - 70) window.scrollBy(0, 14);
+  }
+  document.addEventListener('pointermove', (e) => {
+    const d = drag; if (!d || e.pointerId !== d.pid) return;
+    if (e.pointerType === 'mouse' && e.buttons === 0) { endDrag(false); return; } // button released outside the window
+    const dist = Math.hypot(e.clientX - d.sx, e.clientY - d.sy);
+    if (!d.started) {
+      if (d.type === 'touch') { if (dist > 10) { clearTimeout(d.timer); drag = null; } return; } // finger moved first: it's a scroll
+      if (dist > 5) startDrag(d, e.clientX, e.clientY);
+      return;
+    }
+    e.preventDefault();
+    moveGhost(d, e.clientX, e.clientY);
+  });
+  document.addEventListener('pointerup', (e) => { if (drag && e.pointerId === drag.pid) endDrag(true); });
+  document.addEventListener('pointercancel', (e) => { if (drag && e.pointerId === drag.pid) endDrag(false); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && drag) endDrag(false); });
+  window.addEventListener('blur', () => endDrag(false));
+  function attachDrag(row, t) {
+    row.addEventListener('touchmove', (e) => { if (drag && drag.started) e.preventDefault(); }, { passive: false });
+    row.addEventListener('contextmenu', (e) => { if (drag && drag.started) e.preventDefault(); });
+    row.addEventListener('pointerdown', (e) => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      if (e.target.closest('button, a, input, .menu')) return;
+      endDrag(false);
+      const d = { t, row, sx: e.clientX, sy: e.clientY, pid: e.pointerId, type: e.pointerType, started: false, timer: null, to: null };
+      drag = d;
+      // touch: hold briefly to pick the card up, so normal scrolling still works
+      if (e.pointerType !== 'mouse') d.timer = setTimeout(() => { if (d.row.isConnected) startDrag(d, d.sx, d.sy); else if (drag === d) drag = null; }, 280);
+    });
+  }
+
+  function taskRow(t, r) {
+    const u = C.me();
+    const editable = C.canEditTask(u, t);
+    const people = t.assignees.map(C.user).filter(Boolean);
+    const ncom = C.db.comments.filter((c) => c.taskId === t.id).length;
+    const flagged = (t.flags || []).length && !t.assignees.length;
+    const menu = h('div', { class: 'menu status-menu' }, C.STATUSES.map((s) => {
+      const m = s === t.status ? { ok: false } : C.canMove(u, t, s);
+      return h('button', { class: 'menu-item', type: 'button', disabled: !m.ok, title: s === t.status ? 'Current status' : (m.ok ? '' : m.reason), text: C.STATUS_LABEL[s],
+        onclick: (e) => { e.stopPropagation(); menu.classList.remove('open'); moveTask(t, s); } });
+    }));
+    const canChange = C.STATUSES.some((s) => s !== t.status && C.canMove(u, t, s).ok);
+    const pill = canChange
+      ? h('div', { class: 'menu-wrap' }, statusPill(t.status, 'button', { type: 'button', title: 'Change status', 'aria-haspopup': 'menu', onclick: (e) => { e.stopPropagation(); const open = menu.classList.contains('open'); document.querySelectorAll('.menu.open').forEach((m) => m.classList.remove('open')); if (!open) menu.classList.add('open'); } }), menu)
+      : statusPill(t.status, 'span', { title: 'You can\'t change this status' });
+    const row = h('div', { class: 'task-row ' + t.status + (canChange ? ' can-drag' : ''), tabindex: '0', role: 'button', 'data-ctx': 'task:' + t.id, 'aria-label': 'Open task ' + t.title,
+      onclick: () => { if (!suppressClick) taskModal(t, r); },
+      onkeydown: (e) => { if ((e.key === 'Enter' || e.key === ' ') && e.target === row) { e.preventDefault(); taskModal(t, r); } },
+    },
+      pill,
+      h('span', { class: 'task-name', text: t.title }),
+      t.tags.length ? h('span', { class: 'task-tags' }, t.tags.map(tagEl)) : null,
+      h('span', { class: 'row-right' },
+        ncom ? h('span', { class: 'row-meta', text: plural(ncom, 'comment', 'comments') }) : null,
+        editable ? h('span', { class: 'you-badge', text: 'Yours' }) : h('span', { class: 'ro-badge', text: 'Read only' }),
+        people.length ? h('span', { class: 'avatar-stack', title: people.map((p) => C.dn(p)).join(', ') }, people.slice(0, 4).map((p) => avatarEl(p)))
+          : h('span', { class: 'row-meta unassigned' + (flagged ? ' flagged' : ''), text: flagged ? 'Needs a new assignee' : 'Unassigned' })));
+    if (canChange) attachDrag(row, t);
+    return row;
+  }
+
+  // ---------- task modal ----------
+  let commentsRepaint = null; // set by the open task modal so a deleted comment disappears from its thread
+  document.addEventListener('kivo-comments', () => { if (commentsRepaint) commentsRepaint(); });
+  function taskModal(t, r) {
+    const u = C.me();
+    const isNew = !t;
+    const creator = C.isCreator(u, r);
+    const assigner = isNew ? creator : C.canAssign(u, r, t);
+    if (isNew && !creator) return;
+    const canEdit = isNew ? true : C.canEditTask(u, t);
+    const archived = C.isArchived(r);
+    const selected = new Set(isNew ? [] : t.assignees);
+    const err = h('p', { class: 'form-error', role: 'alert' });
+    const openStatus = isNew ? 'planned' : t.status; // what the modal opened with
+    let status = openStatus;
+    const body = h('div');
+
+    const name = h('input', { type: 'text', id: 't-name', maxlength: 120, value: isNew ? '' : t.title, placeholder: 'e.g. Write the launch post' });
+    const desc = h('textarea', { id: 't-desc', rows: 4, maxlength: 2000, placeholder: 'Describe this task' });
+    desc.value = isNew ? '' : t.description;
+    const tags = h('input', { type: 'text', id: 't-tags', value: isNew ? '' : t.tags.join(', '), placeholder: 'comma separated, e.g. Design, Launch' });
+
+    if (!isNew && (t.flags || []).length && !t.assignees.length) {
+      body.append(h('p', { class: 'info-note flag', text: 'Needs a new assignee: ' + t.flags.map((f) => C.dn(C.user(f.userId)) + ' (' + f.reason + ')').join(', ') + '.' }));
+    }
+    if (canEdit) {
+      body.append(h('div', { class: 'form-group' }, h('label', { for: 't-name' }, 'Name'), name),
+        h('div', { class: 'form-group' }, h('label', { for: 't-desc' }, 'Description'), desc));
+      if (!isNew) {
+        const seg = h('div', { class: 'status-seg' }, C.STATUSES.map((s) => {
+          const m = s === t.status ? { ok: true } : C.canMove(u, t, s);
+          return h('button', { type: 'button', 'data-status': s, class: s === status ? 'active' : '', disabled: !m.ok, title: m.ok ? '' : m.reason, text: C.STATUS_LABEL[s],
+            onclick: () => { status = s; seg.querySelectorAll('button').forEach((b) => b.classList.toggle('active', b.dataset.status === s)); } });
+        }));
+        body.append(h('div', { class: 'form-group' }, h('label', null, 'Status'), seg,
+          h('span', { class: 'assignee-hint', text: C.isOwner(u, r) ? 'Tasks move forward only. As the owner you can also move one back; that is logged as an override.' : 'Tasks move forward only: Planned, In progress, Finished. You will be asked to confirm.' })));
+      }
+      body.append(h('div', { class: 'form-group' }, h('label', { for: 't-tags' }, 'Tags'), tags));
+    } else {
+      addAll(body,
+        h('div', { class: 'ro-block' }, h('h4', { class: 'ro-title', text: t.title }), statusPill(t.status)),
+        t.description ? h('p', { class: 'ro-desc', text: t.description }) : h('p', { class: 'ro-desc muted', text: 'No description.' }),
+        t.tags.length ? h('div', { class: 'task-tags ro-tags' }, t.tags.map(tagEl)) : null,
+        h('p', { class: 'info-note', text: archived ? 'This roadmap is archived, so the task is read-only.' : u.role === 'it' ? 'Admins can read and comment. Only assigned people can edit.' : 'Only the people assigned to this task can edit it or mark it complete. You can read it and leave a comment.' }));
+      if (C.isOwner(u, r) && !archived && t.status !== 'planned') {
+        const back = C.STATUSES.slice(0, C.STATUSES.indexOf(t.status));
+        body.append(h('div', { class: 'form-group' }, h('label', null, 'Owner override'),
+          h('div', { class: 'head-actions left0' }, back.map((s) => h('button', { class: 'btn-ghost btn-small', type: 'button', text: 'Move back to ' + C.STATUS_LABEL[s], onclick: () => moveTask(t, s, () => { modals.slice().forEach((m) => m.close()); }) })))));
+      }
+    }
+
+    // assignees: editable only for people who may assign
+    const pool = C.assignable(r).map(C.user).filter(Boolean);
+    if (assigner) {
+      const picker = h('div', { class: 'assignee-picker' }, pool.map((p) => {
+        const cb = h('input', { type: 'checkbox', checked: selected.has(p.id), onchange: () => { if (cb.checked) selected.add(p.id); else selected.delete(p.id); lab.classList.toggle('selected', cb.checked); } });
+        const lab = h('label', { class: 'assignee-chip' + (selected.has(p.id) ? ' selected' : '') }, cb, avatarEl(p), p.id === r.managerId ? p.name + ' (owner)' : p.name);
+        return lab;
+      }));
+      body.append(h('div', { class: 'form-group' }, h('label', null, 'Who is working on this?'), picker,
+        h('span', { class: 'assignee-hint', text: 'Only the people you pick can edit this task or mark it complete.' })));
+    } else if (!isNew) {
+      const ppl = t.assignees.map(C.user).filter(Boolean);
+      body.append(h('div', { class: 'form-group' }, h('label', null, 'Assigned to'),
+        ppl.length ? h('div', { class: 'assignee-picker' }, ppl.map((p) => h('span', { class: 'assignee-chip selected static' }, avatarEl(p), C.dn(p))))
+          : h('span', { class: 'assignee-hint', text: 'Nobody is assigned yet, so nobody can edit this task.' })));
+    }
+
+    // comments
+    if (!isNew) {
+      const list = h('div', { class: 'comments' });
+      const paint = () => {
+        clear(list);
+        let cs = [];
+        try { cs = C.commentsFor(t.id); } catch (e) { /* task gone */ }
+        if (!cs.length) list.append(h('p', { class: 'access-empty', text: 'No comments yet.' }));
+        cs.forEach((c) => { const a = C.user(c.userId); list.append(h('div', { class: 'comment', 'data-ctx': 'comment:' + c.id }, avatarEl(a),
+          h('div', { class: 'comment-main' },
+            h('div', { class: 'comment-head' }, h('strong', { text: C.dn(a) }), h('time', { text: ' ' + fmtTime(c.at) }),
+              C.canDeleteComment(u, c) ? h('button', { class: 'comment-del', type: 'button', title: 'Delete comment', 'aria-label': 'Delete comment', onclick: () => deleteCommentFlow(c) }, svgIcon(ICON.trash, 14)) : null),
+            h('p', { text: c.text })))); });
+        list.scrollTop = list.scrollHeight;
+      };
+      const box = h('textarea', { rows: 2, maxlength: 1000, placeholder: 'Write a comment', 'aria-label': 'Write a comment' });
+      const cerr = h('p', { class: 'form-error', role: 'alert' });
+      const post = () => {
+        cerr.textContent = '';
+        try { C.addComment(t.id, box.value); box.value = ''; paint(); } catch (e) { cerr.textContent = e.message; }
+      };
+      box.addEventListener('keydown', (e) => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); post(); } });
+      paint();
+      commentsRepaint = paint;
+      body.append(h('div', { class: 'comments-block' }, h('h4', { class: 'block-title', text: 'Comments' }), list,
+        archived ? h('p', { class: 'assignee-hint', text: 'Archived roadmap: comments are closed.' })
+          : [h('div', { class: 'comment-form' }, box, h('button', { class: 'btn btn-small', type: 'button', onclick: post, text: 'Post comment' })), cerr]));
+    }
+    body.append(err);
+
+    const doSave = (close) => {
+      err.textContent = '';
+      try {
+        if (isNew) C.createTask(r.id, { title: name.value, description: desc.value, tags: tags.value, assignees: [...selected] });
+        else {
+          const patch = {};
+          if (canEdit) Object.assign(patch, { title: name.value, description: desc.value, tags: tags.value });
+          if (canEdit && status !== openStatus) patch.status = status;
+          if (assigner) patch.assignees = [...selected];
+          C.updateTask(t.id, patch);
+        }
+        close(); toast(isNew ? 'Task created.' : 'Task saved.'); render();
+      } catch (e) { err.textContent = e.message; render(); }
+    };
+    const save = (close) => {
+      if (!isNew && canEdit && status !== openStatus) {
+        confirmBox('Move task?', 'Move ' + t.title + ' to ' + C.STATUS_LABEL[status] + '? This can\'t be undone.', 'Move task', () => doSave(close));
+      } else doSave(close);
+    };
+    const canSave = canEdit || assigner;
+    const canDelete = !isNew && (C.isOwner(u, r) || (t.createdBy === u.id && creator));
+    openModal({
+      onClose: () => { commentsRepaint = null; },
+      title: isNew ? 'New task' : (canEdit ? 'Edit task' : 'Task'),
+      body,
+      footer: (close) => [
+        canDelete ? h('button', { class: 'btn-danger-ghost push-left', onclick: () => confirmBox('Delete task?', 'This removes the task and its comments for everyone. The log keeps a record. There is no undo.', 'Delete task', async () => { close(); await run(() => C.deleteTask(t.id), 'Task deleted.'); }, true), text: 'Delete task' }) : null,
+        h('button', { class: 'btn-ghost', onclick: close, text: canSave ? 'Cancel' : 'Close' }),
+        canSave ? h('button', { class: 'btn', onclick: () => save(close), text: isNew ? 'Create task' : 'Save task' }) : null,
+      ],
+    });
+  }
+
+  // ---------- team (manager) ----------
+  function pageTeam() {
+    const u = C.me();
+    if (u.role !== 'manager') return pageMissing('Only managers have a team page.');
+    const ms = C.managedMembers(u);
+    return h('div', null, topbar({ active: 'team' }),
+      h('main', { class: 'page' },
+        pageHead('Manager', 'My team', h('button', { class: 'btn', onclick: () => accountModal('member'), text: '+ Invite team member' })),
+        ms.length ? h('div', { class: 'mgr-card' }, h('div', { class: 'mgr-panel static' }, ms.map((x) => personRow(x))))
+          : emptyState('No team members yet', 'Invite each person. They get a one-time link and choose their own password.',
+            h('button', { class: 'btn', onclick: () => accountModal('member'), text: '+ Invite team member' }))));
+  }
+
+  // ---------- user page ----------
+  function pageUser(id) {
+    const u = C.me(); const t = C.user(id);
+    if (!t || !C.canSeeProfile(u, t)) return pageMissing('That account doesn\'t exist, or you can\'t view it.');
+    const creator = t.createdBy ? C.user(t.createdBy) : null;
+    const last = C.lastLogin(t.id);
+    const head = h('div', { class: 'settings-card profile-head' },
+      avatarEl(t, 'avatar-xl', true),
+      h('div', { class: 'profile-main' },
+        h('h2', { class: 'account-name', text: C.dn(t) }),
+        h('p', { class: 'person-sub' }, '@' + t.username, ' ', roleBadge(t.role)),
+        h('p', { class: 'profile-status' }, roleLine(t)),
+        h('p', { class: 'person-sub', text: [creator ? 'Invited by ' + C.dn(creator) : 'Original admin', 'on ' + fmtTime(t.createdAt), last ? 'last signed in ' + ago(last) : 'never signed in'].join(' · ') }),
+        h('div', { class: 'head-actions left' },
+          C.canResetPassword(u, t) ? h('button', { class: 'btn-ghost btn-small', onclick: () => resetModal(t), text: t.hash ? 'Send reset link' : 'New invite link' }) : null,
+          C.canDeactivate(u, t) ? activeToggle(t) : null,
+          u.id === t.id ? h('a', { class: 'btn btn-small', href: '#/profile' }, 'Edit my profile') : null)));
+    let logs = null;
+    if (C.canSeeAccountLog(u, t)) {
+      const l = C.accountLog(t.id);
+      logs = [
+        h('h3', { class: 'card-title', text: 'Account log: what ' + t.name.split(' ')[0] + ' did' }), logList(l.by, { hideActor: true, empty: 'This account has not done anything yet.' }),
+        l.about.length ? [h('h3', { class: 'card-title sp', text: 'Done to this account by others' }), logList(l.about)] : null,
+      ];
+    }
+    return h('div', null, topbar({ back: u.role === 'it' ? '#/' : (u.role === 'manager' ? '#/team' : '#/'), title: C.dn(t), meta: C.ROLE_LABEL[t.role] }),
+      h('main', { class: 'page' }, head, logs ? h('div', { class: 'settings-card' }, logs) : null));
+  }
+
+  function pagePasswords() {
+    if (C.me().role !== 'it') return pageMissing('Only IT admins can see the password log.');
+    const es = C.passwordLog();
+    const KIND = {
+      invite_issued: ['invite link issued', 'tag-c0'], invite_used: ['invite used, password set', 'tag-c1'],
+      reset_issued: ['reset link issued', 'tag-c2'], reset_used: ['reset used, password set', 'tag-c1'],
+      demo_set: ['demo password', 'tag-c6'], set: ['password set', 'tag-c1'], reset: ['reset', 'tag-c2'],
+    };
+    const rows = es.map((p) => {
+      const t = C.user(p.userId), by = p.byId ? C.user(p.byId) : null;
+      const k = KIND[p.kind] || [p.kind, 'tag-c0'];
+      const self = p.byId === p.userId;
+      return h('li', { class: 'log-row pw-row' },
+        h('time', { class: 'log-time', text: fmtTime(p.at), title: new Date(p.at).toString() }),
+        h('span', { class: 'log-chip task-tag ' + k[1], text: k[0] }),
+        h('span', { class: 'log-text' }, h('strong', { text: t ? C.dn(t) : 'Unknown account' }), t ? ' (@' + t.username + ')' : '', self ? ' · by themselves' : [' · by ', h('strong', { text: by ? C.dn(by) : 'initial setup' })]));
+    });
+    return h('div', null, topbar({ active: 'pw' }),
+      h('main', { class: 'page' }, pageHead('IT admin', 'Password log'),
+        h('div', { class: 'settings-card' },
+          h('p', { class: 'card-note', text: 'Who issued an invite or reset link, and when it was used. Nobody sets anyone else\'s password: people choose their own through a one-time link, and only a salted SHA-256 hash is stored. The demo accounts\' shared password is marked "demo password".' }),
+          h('p', { class: 'log-note' }, 'This log is append-only. Nobody can edit or delete entries, IT admins included.'),
+          h('ul', { class: 'log-list' }, rows))));
+  }
+
+  // ---------- profile editor ----------
+  function resizeImage(file) {
+    return new Promise((resolve, reject) => {
+      if (!file || !/^image\/(jpeg|png|webp|gif)$/.test(file.type)) return reject(new Error('Choose a JPG, PNG, WebP or GIF picture.'));
+      if (file.size > 8 * 1024 * 1024) return reject(new Error('That picture is over 8 MB. Pick a smaller one.'));
+      const fr = new FileReader();
+      fr.onerror = () => reject(new Error('Could not read that file.'));
+      fr.onload = () => {
+        const img = new Image();
+        img.onerror = () => reject(new Error('That file isn\'t a readable picture.'));
+        img.onload = () => {
+          const S = 128; const cv = document.createElement('canvas'); cv.width = S; cv.height = S;
+          const ctx = cv.getContext('2d'); const m = Math.min(img.width, img.height);
+          ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, S, S);
+          ctx.drawImage(img, (img.width - m) / 2, (img.height - m) / 2, m, m, 0, 0, S, S);
+          resolve(cv.toDataURL('image/jpeg', 0.82));
+        };
+        img.src = fr.result;
+      };
+      fr.readAsDataURL(file);
+    });
+  }
+  function pageProfile() {
+    const u = C.me();
+    let avatar = u.avatar; let presence = u.presence;
+    const preview = h('div', { class: 'avatar-preview' });
+    const paintAv = () => { clear(preview); preview.append(avatarEl({ name: u.name, avatar, presence }, 'avatar-xl')); };
+    paintAv();
+    const err = h('p', { class: 'form-error', role: 'alert' });
+    const name = h('input', { type: 'text', id: 'p-name', maxlength: 40, value: u.name });
+    const text = h('input', { type: 'text', id: 'p-text', maxlength: 80, value: u.statusText, placeholder: 'e.g. In a meeting until 14:00' });
+    const file = h('input', { type: 'file', accept: 'image/*', id: 'p-file', class: 'sr-file', onchange: async () => {
+      err.textContent = '';
+      try { avatar = await resizeImage(file.files[0]); paintAv(); } catch (e) { err.textContent = e.message; }
+      file.value = '';
+    } });
+    const seg = h('div', { class: 'status-seg presence-seg' }, C.PRESENCE.map((p) => h('button', { type: 'button', 'data-p': p, class: p === presence ? 'active' : '', onclick: () => { presence = p; seg.querySelectorAll('button').forEach((b) => b.classList.toggle('active', b.dataset.p === p)); } },
+      h('span', { class: 'presence-dot p-' + p }), C.PRESENCE_LABEL[p])));
+    const form = h('form', { class: 'settings-card', onsubmit: (e) => {
+      e.preventDefault(); err.textContent = '';
+      try { const changed = C.updateProfile({ name: name.value, avatar, presence, statusText: text.value }); toast(changed ? 'Profile saved.' : 'Nothing changed.'); render(); }
+      catch (ex) { err.textContent = ex.message; }
+    } },
+      h('h2', { class: 'card-title', text: 'Your profile' }),
+      h('div', { class: 'profile-pic-row' }, preview, h('div', null,
+        h('label', { class: 'btn-ghost btn-small', for: 'p-file', tabindex: '0', onkeydown: (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); file.click(); } } }, 'Upload picture'),
+        ' ', h('button', { class: 'btn-ghost btn-small', type: 'button', onclick: () => { avatar = ''; paintAv(); }, text: 'Remove' }),
+        h('p', { class: 'card-note', text: 'Shrunk to a small square and kept in this browser.' })), file),
+      h('div', { class: 'form-group' }, h('label', { for: 'p-name' }, 'Display name'), name),
+      h('div', { class: 'form-group' }, h('label', null, 'Status'), seg),
+      h('div', { class: 'form-group' }, h('label', { for: 'p-text' }, 'Status message'), text),
+      err, h('button', { class: 'btn', type: 'submit', text: 'Save profile' }));
+    return h('div', null, topbar({ back: '#/', title: 'Your profile', meta: C.ROLE_LABEL[u.role] + ' · @' + u.username }),
+      h('main', { class: 'page narrow' }, form, h('p', { class: 'card-note' }, 'Want to see what your account has done? ', h('a', { href: '#/user/' + u.id }, 'Open your account log'), '.')));
+  }
+
+  // ---------- logs ----------
+  function pageRoadmapLog(rid) {
+    const u = C.me(); const r = C.roadmapById(rid);
+    if (!r || !C.canSeeRoadmapLog(u, r)) return pageMissing('That log doesn\'t exist, or you can\'t view it.');
+    return h('div', null, topbar({ back: u.role === 'it' ? '#/' : '#/roadmap/' + r.id, title: 'Logs: ' + r.title, meta: 'Everything that happened on this roadmap, newest first' }),
+      h('main', { class: 'page' }, h('div', { class: 'settings-card' }, logList(C.roadmapLog(rid), { empty: 'Nothing has happened on this roadmap yet.' }))));
+  }
+  function pageGlobalLog() {
+    if (C.me().role !== 'it') return pageMissing('Only IT admins can see the full activity log.');
+    return h('div', null, topbar({ active: 'log' }),
+      h('main', { class: 'page' }, pageHead('IT admin', 'All activity'), h('div', { class: 'settings-card' }, logList(C.globalLog()))));
+  }
+  function pageMissing(text) {
+    return h('div', null, topbar({}), h('main', { class: 'page' }, emptyState('Nothing to see here', text, h('div', { style: 'display:flex;gap:8px;justify-content:center;flex-wrap:wrap' }, h('a', { class: 'btn', href: '#/' }, 'Back to start'),
+      h('button', { class: 'btn-ghost btn-small', type: 'button', onclick: async () => { await C.resetDemo(); toast('Demo data restored.'); go('#/'); render(); }, text: 'Reset demo data' })))));
+  }
+
+  // ============================================================
+  // ROUTER
+  // ============================================================
+  function render() {
+    closeCtx();
+    if (modals.length === 0) document.querySelectorAll('.menu.open').forEach((m) => m.classList.remove('open'));
+    const u = C.me();
+    const parts = (location.hash.replace(/^#\/?/, '') || '').split('/').filter(Boolean);
+    let page;
+    try {
+      if (parts[0] === 'invite') page = pageInvite(parts.slice(1).join('/'));
+      else if (!u) { page = pageLogin(); if (parts[0] && parts[0] !== 'login') history.replaceState(null, '', '#/login'); }
+      else if (parts[0] === 'login' || !parts.length) { page = pageHome(); }
+      else if (parts[0] === 'roadmap') page = pageRoadmap(parts[1]);
+      else if (parts[0] === 'team') page = pageTeam();
+      else if (parts[0] === 'user') page = pageUser(parts[1]);
+      else if (parts[0] === 'profile') page = pageProfile();
+      else if (parts[0] === 'log' && parts[1] === 'roadmap') page = pageRoadmapLog(parts[2]);
+      else if (parts[0] === 'log') page = pageGlobalLog();
+      else if (parts[0] === 'passwords') page = pagePasswords();
+      else page = pageMissing('That page doesn\'t exist.');
+    } catch (e) {
+      page = pageMissing(e && e.message ? e.message : 'Something went wrong.');
+    }
+    const scroll = window.scrollY;
+    const focusId = document.activeElement && document.activeElement.id;
+    clear(app); app.append(page);
+    if (u) document.title = 'Kivo Office';
+    if (focusId) { const f = document.getElementById(focusId); if (f && modals.length === 0) f.focus(); }
+    window.scrollTo(0, scroll);
+  }
+  window.addEventListener('hashchange', () => { window.scrollTo(0, 0); render(); });
+  // another tab changed the data: pick it up (modals are untouched, they live outside #app)
+  window.addEventListener('storage', (e) => { if (e.key === 'kivo-office-v1' || e.key === 'kivo-office-session-v1') { Core.init().then(render); } });
+
+  Core.init().then(() => {
+    if (!C.me() && location.hash !== '#/login' && !/^#\/invite\//.test(location.hash)) history.replaceState(null, '', '#/login');
+    render();
+  }).catch((e) => { app.textContent = 'Could not start Kivo Office: ' + e.message; });
+})();
+
+
+
+    </script>
+</body>
+
+</html>
