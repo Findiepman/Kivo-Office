@@ -1,0 +1,42 @@
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    # Only what the app reads goes into its container (compose fills these in
+    # from .env). The tunnel token stays with cloudflared.
+    environment:
+      - NODE_ENV=${NODE_ENV:-production}
+      - APP_URL=${APP_URL:-}
+      - SMTP_HOST=${SMTP_HOST:-}
+      - SMTP_PORT=${SMTP_PORT:-}
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASS=${SMTP_PASS:-}
+      - MAIL_FROM=${MAIL_FROM:-}
+      # fixed inside the container, whatever .env says
+      - PORT=3000
+      - DATA_DIR=/app/data
+      # the port is only bound to 127.0.0.1 below, so a proxy or the tunnel
+      # always sits in front: without this every visitor would share one
+      # address, and one sign-in lockout
+      - TRUST_PROXY=1
+      # so the printed setup link points at the port you actually open
+      - HOST_PORT=${HOST_PORT:-3000}
+    volumes:
+      # the whole state of the install: copy this folder (and .env) to move it
+      - ./data:/app/data
+    ports:
+      # only reachable from this machine; use the tunnel (or your own HTTPS
+      # proxy) for everyone else
+      - "127.0.0.1:${HOST_PORT:-3000}:3000"
+
+  # Optional: start with  docker compose --profile tunnel up -d
+  cloudflared:
+    # pinned: update deliberately, not whenever the image is pulled
+    image: cloudflare/cloudflared:2026.10.7
+    profiles: ["tunnel"]
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+    depends_on:
+      - app

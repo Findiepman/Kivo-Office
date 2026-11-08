@@ -4,4 +4,17 @@ desktop.ini
 .vscode/
 .idea/
 node_modules/
+npm-debug.log*
 STATUS.md
+screenshots
+
+# Everything the install knows lives in data/ (database, avatars, backups)
+# and secrets live in .env. Neither ever goes into this public repo.
+data/
+.env
+.env.*
+!.env.example
+*.db
+*.db-journal
+*.db-wal
+*.db-shm

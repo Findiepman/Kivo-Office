@@ -1,0 +1,245 @@
+/* Roadmap page — tasks as a grouped status ledger instead of a kanban board.
+   Kivo Office adds the board layout in office.css. */
+
+.page {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 2.5rem 1.5rem 5rem;
+}
+
+.board-title {
+    min-width: 0;
+}
+
+.board-title h1 {
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.roadmap-meta {
+    font-size: 0.84rem;
+    color: var(--ink-soft);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 48ch;
+}
+
+.read-only-badge {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--deep);
+    background: var(--baby-soft);
+    padding: 0.35rem 0.85rem;
+    border-radius: 999px;
+    white-space: nowrap;
+}
+
+/* ---------- status sections ---------- */
+
+.status-section {
+    margin-bottom: 2.4rem;
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.8rem;
+    padding-left: 0.2rem;
+}
+
+.section-header h2 {
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+
+.section-dot {
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+}
+
+.section-dot.planned { background: var(--st-planned); }
+.section-dot.in_progress { background: var(--st-progress); }
+.section-dot.finished { background: var(--st-finished); }
+
+.section-count {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--ink-soft);
+    background: var(--cloud);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 0.12rem 0.6rem;
+}
+
+.section-empty {
+    color: var(--ink-soft);
+    font-size: 0.9rem;
+    padding: 1rem 1.2rem;
+    background: rgba(255, 255, 255, 0.55);
+    border: 1px dashed var(--line);
+    border-radius: var(--radius);
+}
+
+/* ---------- task rows ---------- */
+
+.task-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+}
+
+.task-row {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    background: var(--cloud);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    transition: transform 0.14s ease, box-shadow 0.14s ease, border-color 0.14s;
+    box-shadow: 0 3px 10px rgba(27, 111, 184, 0.05);
+}
+
+.task-row:hover {
+    transform: translateY(-1px);
+    border-color: var(--baby);
+    box-shadow: var(--shadow);
+}
+
+.task-row .task-name {
+    font-weight: 600;
+    font-size: 0.98rem;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.task-row.finished .task-name {
+    color: var(--ink-soft);
+}
+
+.task-row .task-tags {
+    display: flex;
+    gap: 0.35rem;
+    flex-wrap: wrap;
+    min-width: 0;
+}
+
+.task-row .row-right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    flex-shrink: 0;
+}
+
+/* status pill acts as a quick-change button */
+.task-row .status-pill {
+    cursor: pointer;
+    transition: filter 0.12s;
+}
+
+.task-row .status-pill:hover {
+    filter: brightness(0.95);
+}
+
+.status-menu {
+    min-width: 150px;
+}
+
+/* ---------- assignee picker in the task modal ---------- */
+
+.assignee-picker {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+}
+
+.assignee-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    border: 1px solid var(--line);
+    background: var(--cloud);
+    border-radius: 999px;
+    padding: 0.3rem 0.85rem 0.3rem 0.35rem;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--ink-soft);
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.14s, border-color 0.14s, color 0.14s;
+}
+
+.assignee-chip input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.assignee-chip .avatar {
+    width: 24px;
+    height: 24px;
+    font-size: 0.7rem;
+}
+
+.assignee-chip.selected {
+    background: var(--baby-soft);
+    border-color: var(--sky);
+    color: var(--deep);
+}
+
+.assignee-hint {
+    font-size: 0.84rem;
+    color: var(--ink-soft);
+}
+
+/* ---------- public view extras ---------- */
+
+.public-unavailable {
+    text-align: center;
+    padding: 5rem 1rem;
+    color: var(--ink-soft);
+}
+
+.public-unavailable h2 {
+    font-family: var(--font-display);
+    color: var(--ink);
+    margin-bottom: 0.5rem;
+}
+
+/* ---------- responsive ---------- */
+
+@media (max-width: 640px) {
+    .topbar {
+        padding: 0.75rem 1rem;
+    }
+
+    .page {
+        padding: 1.75rem 1rem 4rem;
+    }
+
+    .task-row {
+        flex-wrap: wrap;
+    }
+
+    .task-row .row-right {
+        width: 100%;
+        margin-left: 0;
+        justify-content: space-between;
+    }
+}
+

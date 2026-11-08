@@ -1,0 +1,137 @@
+/* Settings — account overview plus the admin panel. */
+
+.page {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 5rem;
+}
+
+.page-head {
+    margin-bottom: 2rem;
+}
+
+.page-title {
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 5vw, 2.6rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+}
+
+.settings-card {
+    background: var(--cloud);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 1.6rem 1.75rem;
+    margin-bottom: 1.4rem;
+}
+
+.card-title {
+    font-family: var(--font-display);
+    font-size: 1.2rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin-bottom: 1rem;
+}
+
+.card-note {
+    font-size: 0.88rem;
+    color: var(--ink-soft);
+    line-height: 1.5;
+    margin-bottom: 1.2rem;
+}
+
+.account-row {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    margin-bottom: 0.6rem;
+}
+
+.avatar-lg {
+    width: 52px;
+    height: 52px;
+    font-size: 1.3rem;
+}
+
+.account-name {
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+/* admin create form: inline on wide screens */
+.admin-create {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 0.75rem;
+    align-items: end;
+    margin-bottom: 0.4rem;
+}
+
+.admin-create .form-group {
+    margin-bottom: 0;
+}
+
+.user-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.user-row {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: 0.6rem 0.8rem;
+}
+
+.user-row .user-name {
+    font-weight: 700;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+    flex-wrap: wrap;
+}
+
+.user-row .user-since {
+    font-size: 0.78rem;
+    color: var(--ink-soft);
+    font-weight: 500;
+}
+
+.user-row .user-actions {
+    margin-left: auto;
+    display: flex;
+    gap: 0.4rem;
+    flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+    .page {
+        padding: 2rem 1rem 4rem;
+    }
+
+    .admin-create {
+        grid-template-columns: 1fr;
+        align-items: stretch;
+    }
+
+    .user-row {
+        flex-wrap: wrap;
+    }
+
+    .user-row .user-actions {
+        width: 100%;
+        margin-left: 0;
+        justify-content: flex-end;
+    }
+}
+
