@@ -1,4 +1,4 @@
-const { PORT, APP_URL, isProduction, mailEnabled, TRUST_PROXY } = require('./config');
+const { PORT, HOST, APP_URL, isProduction, mailEnabled, TRUST_PROXY } = require('./config');
 const db = require('./db');
 const links = require('./links');
 const sessions = require('./sessions');
@@ -7,14 +7,14 @@ const { createApp } = require('./app');
 
 const app = createApp();
 
-const server = app.listen(PORT, (err) => {
-  // Express 5 hands listen errors (port in use) to this callback
+function onListening(err) {
+  // Express 5 hands listen errors (port in use, unknown BIND_HOST) to this callback
   if (err) {
-    console.error(`Could not start on port ${PORT}: ${err.message}`);
+    console.error(`Could not start on ${HOST ? HOST + ':' : 'port '}${PORT}: ${err.message}`);
     process.exit(1);
   }
   const port = server.address().port;
-  console.log(`Kivo Office listening on http://localhost:${port}`);
+  console.log(`Kivo Office listening on http://localhost:${port}` + (HOST ? ` (only on ${HOST})` : ''));
   if (!APP_URL) console.log('APP_URL is not set: links are built from the address you open the app on, and no email is sent.');
   if (isProduction && !APP_URL) {
     console.log('WARNING: NODE_ENV=production without APP_URL. Set APP_URL to the https:// address people open.');
@@ -43,7 +43,9 @@ const server = app.listen(PORT, (err) => {
     console.log('');
     console.log(`It works once and expires ${new Date(issued.expiresAt).toLocaleString()}. Restarting prints a new one.`);
   }
-});
+}
+
+const server = HOST ? app.listen(PORT, HOST, onListening) : app.listen(PORT, onListening);
 
 // Expired sessions and old sign-in counters are cleared hourly.
 function housekeeping() {

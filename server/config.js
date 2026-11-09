@@ -17,6 +17,11 @@ function parseTrustProxy(v) {
 const rawPort = Number(process.env.PORT);
 const PORT = process.env.PORT && Number.isInteger(rawPort) && rawPort >= 0 ? rawPort : 3000;
 
+// Empty = every interface (Node's default, and what Docker needs inside the
+// container). 127.0.0.1 keeps a plain npm start behind a tunnel or proxy off
+// the local network, where it would otherwise answer over plain http.
+const HOST = (process.env.BIND_HOST || '').trim();
+
 // APP_URL is the public address people open (https://kivo.example.com). Links
 // in emails are only ever built from it, never from a request's Host header,
 // so a forged Host can't redirect someone's invite token elsewhere.
@@ -43,6 +48,7 @@ const smtp = {
 module.exports = {
   rootDir,
   PORT,
+  HOST,
   APP_URL,
   NODE_ENV: process.env.NODE_ENV || 'development',
   isProduction: process.env.NODE_ENV === 'production',

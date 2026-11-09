@@ -16,6 +16,7 @@ function baseEnv(dataDir, extra) {
   // and nothing is ever emailed from one.
   return Object.assign({}, process.env, {
     PORT: '0',
+    BIND_HOST: '',
     DATA_DIR: dataDir,
     NODE_ENV: 'test',
     APP_URL: '',

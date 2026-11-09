@@ -147,3 +147,12 @@ test('startup warnings for production settings', async (t) => {
   t.after(() => docker.stop());
   assert.match(docker.output(), /http:\/\/localhost:8123\/#\/invite\//, 'without APP_URL the link uses the host port');
 });
+
+test('BIND_HOST limits which address the server listens on', async (t) => {
+  const local = await startServer({ env: { BIND_HOST: '127.0.0.1' } });
+  t.after(() => local.stop());
+  assert.match(local.output(), /listening on http:\/\/localhost:\d+ \(only on 127\.0\.0\.1\)/);
+  const res = await fetch(`http://127.0.0.1:${local.port}/`);
+  assert.equal(res.status, 200);
+  await assert.rejects(startServer({ env: { BIND_HOST: 'no-such-host.invalid' } }), /Could not start on no-such-host\.invalid:0/);
+});
