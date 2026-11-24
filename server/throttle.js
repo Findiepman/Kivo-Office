@@ -1,5 +1,6 @@
 const net = require('net');
 const db = require('./db');
+const { TRUST_CF_CONNECTING_IP } = require('./config');
 const { now } = require('./util');
 
 // Failed sign-ins, counted under several keys, each with its own limit. A
@@ -24,16 +25,35 @@ const put = db.prepare(
 // would let one person rotate through billions of them.
 function addressKey(ip) {
   const s = String(ip || 'unknown');
-  const mapped = /^::ffff:(\d+\.\d+\.\d+\.\d+)$/i.exec(s);
-  if (mapped) return mapped[1];
   if (net.isIPv6(s)) {
-    const [head, tail] = s.split('::');
+    // a dotted IPv4 tail (::ffff:1.2.3.4) becomes two hex groups first
+    const dotted = /^(.*:)(\d+)\.(\d+)\.(\d+)\.(\d+)$/.exec(s);
+    const hex = dotted
+      ? dotted[1] + ((+dotted[2] << 8) | +dotted[3]).toString(16) + ':' + ((+dotted[4] << 8) | +dotted[5]).toString(16)
+      : s;
+    const [head, tail] = hex.split('::');
     const a = head ? head.split(':') : [];
     const b = tail !== undefined && tail !== '' ? tail.split(':') : [];
-    const full = tail === undefined ? a : a.concat(Array(8 - a.length - b.length).fill('0'), b);
-    return full.slice(0, 4).map((x) => x.toLowerCase().replace(/^0+(?=.)/, '')).join(':') + '::/64';
+    const full = (tail === undefined ? a : a.concat(Array(8 - a.length - b.length).fill('0'), b))
+      .map((x) => parseInt(x, 16));
+    // IPv4-mapped (::ffff:a.b.c.d in any spelling) counts as that IPv4
+    // address, never as one shared IPv6 /64
+    if (full.slice(0, 5).every((x) => x === 0) && full[5] === 0xffff) {
+      return [full[6] >> 8, full[6] & 255, full[7] >> 8, full[7] & 255].join('.');
+    }
+    return full.slice(0, 4).map((x) => x.toString(16)).join(':') + '::/64';
   }
   return s;
+}
+
+// The visitor's address: Cloudflare's CF-Connecting-IP when that is trusted
+// (see config.js), else req.ip (TRUST_PROXY decides how far that looks).
+function clientIp(req) {
+  if (TRUST_CF_CONNECTING_IP) {
+    const cf = String(req.get('CF-Connecting-IP') || '').trim();
+    if (net.isIP(cf)) return cf;
+  }
+  return req.ip;
 }
 
 function lockedUntil(key) {
@@ -79,4 +99,4 @@ function purgeExpired() {
   db.prepare('DELETE FROM login_throttle WHERE locked_until <= ? AND window_start <= ?').run(t, t - WINDOW);
 }
 
-module.exports = { lockedUntil, count, forgive, clear, purgeExpired, addressKey, LIMITS, LOCK };
+module.exports = { lockedUntil, count, forgive, clear, purgeExpired, addressKey, clientIp, LIMITS, LOCK };

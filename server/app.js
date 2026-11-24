@@ -1,6 +1,6 @@
 const path = require('path');
 const express = require('express');
-const { rootDir, TRUST_PROXY } = require('./config');
+const { rootDir, TRUST_PROXY, WRITE_LIMIT_PER_MINUTE } = require('./config');
 
 // Initialising db creates the SQLite file, tables and triggers on first run.
 require('./db');
@@ -16,6 +16,35 @@ const meRoutes = require('./routes/me');
 const roadmapRoutes = require('./routes/roadmaps');
 const taskRoutes = require('./routes/tasks');
 const adminRoutes = require('./routes/admin');
+
+// Changes per signed-in account per minute (see config.js). Counted per
+// account, not per address, so a whole office behind one address never
+// shares a budget. Requests without a session are left to their own limits
+// (sign-in throttle, single-use link tokens).
+function writeLimit() {
+  const WINDOW = 60 * 1000;
+  const counts = new Map(); // user id -> { n, start }
+  setInterval(() => {
+    const cutoff = Date.now() - WINDOW;
+    for (const [k, v] of counts) if (v.start <= cutoff) counts.delete(k);
+  }, WINDOW).unref();
+  return (req, res, next) => {
+    if (!WRITE_LIMIT_PER_MINUTE || !req.user || req.method === 'GET' || req.method === 'HEAD' || req.method === 'OPTIONS') return next();
+    // signing out must always work (Express routes /AUTH/logout/ there too)
+    if (req.path.toLowerCase().replace(/\/{2,}/g, '/').replace(/\/$/, '') === '/auth/logout') return next();
+    const t = Date.now();
+    let e = counts.get(req.user.id);
+    if (!e || e.start <= t - WINDOW) {
+      e = { n: 0, start: t };
+      counts.set(req.user.id, e);
+    }
+    if (++e.n > WRITE_LIMIT_PER_MINUTE) {
+      res.setHeader('Retry-After', String(Math.max(1, Math.ceil((e.start + WINDOW - t) / 1000))));
+      return res.status(429).json({ error: 'Too many changes at once. Wait a minute and try again.' });
+    }
+    next();
+  };
+}
 
 function createApp() {
   const app = express();
@@ -35,6 +64,7 @@ function createApp() {
     res.setHeader('Cache-Control', 'no-store');
     next();
   });
+  app.use('/api', writeLimit());
 
   app.get('/api/health', (req, res) => res.json({ ok: true }));
   app.use('/api/auth', authRoutes);

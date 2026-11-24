@@ -76,9 +76,13 @@ router.post('/use', async (req, res) => {
       const ended = sessions.destroyAllFor(userId);
       const u = getUser(userId);
       pwlog(userId, userId, row.kind === 'invite' ? 'invite_used' : 'reset_used');
+      // Whoever issued the link also saw it, so the log names them: if they
+      // used it themselves, what follows isn't silently pinned on the owner.
+      const issuer = row.created_by ? getUser(row.created_by) : null;
+      const from = issuer && issuer.id !== userId ? ' issued by ' + issuer.name : '';
       log(u, 'password', row.kind === 'invite'
-        ? 'used the invite link and set their own password'
-        : 'used a reset link and set a new password' + (ended ? ' (' + ended + ' open session' + (ended === 1 ? '' : 's') + ' ended)' : ''), { subjectId: u.id });
+        ? 'used the invite link' + from + ' and set their own password'
+        : 'used a reset link' + from + ' and set a new password' + (ended ? ' (' + ended + ' open session' + (ended === 1 ? '' : 's') + ' ended)' : ''), { subjectId: u.id });
     }
     if (req.session) sessions.destroy(req.session.tokenHash);
     sessions.create(res, userId);

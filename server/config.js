@@ -37,6 +37,12 @@ if (APP_URL) {
   }
 }
 
+// Changes (POST/PUT/PATCH/DELETE) one signed-in account may make per minute.
+// Far above what clicking around produces; stops a script flooding the
+// database. 0 turns the limit off.
+const rawWrites = Number(process.env.WRITE_LIMIT_PER_MINUTE);
+const WRITE_LIMIT_PER_MINUTE = process.env.WRITE_LIMIT_PER_MINUTE && Number.isInteger(rawWrites) && rawWrites >= 0 ? rawWrites : 120;
+
 const smtp = {
   host: process.env.SMTP_HOST || '',
   port: Number(process.env.SMTP_PORT) || 0,
@@ -54,6 +60,11 @@ module.exports = {
   isProduction: process.env.NODE_ENV === 'production',
   DATA_DIR: path.resolve(rootDir, process.env.DATA_DIR || 'data'),
   TRUST_PROXY: parseTrustProxy(process.env.TRUST_PROXY),
+  // Cloudflare's CF-Connecting-IP is always exactly the visitor. Only safe to
+  // trust when nothing but Cloudflare can reach the app (BIND_HOST=127.0.0.1
+  // behind cloudflared); anywhere else a visitor could send it themselves.
+  TRUST_CF_CONNECTING_IP: process.env.TRUST_CF_CONNECTING_IP === '1',
+  WRITE_LIMIT_PER_MINUTE,
   smtp,
   mailEnabled: !!(smtp.host && smtp.port && smtp.user && smtp.pass && smtp.from),
 };

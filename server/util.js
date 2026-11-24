@@ -5,10 +5,16 @@ const now = () => Date.now();
 
 // Same normalisers as the prototype's Core: one-line fields collapse
 // whitespace, long fields keep line breaks. Non-strings become ''.
+// Control characters and bidi overrides/isolates are removed: they can't run
+// script (text is only ever rendered as text), but a stray right-to-left
+// override in a name would scramble every log line that shows it. Zero-width
+// spaces and the BOM go too; the zero-width joiner stays (emoji need it).
+// eslint-disable-next-line no-control-regex
+const INVISIBLE = /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f-\u009f\u200b\u202a-\u202e\u2066-\u2069\ufeff]/g;
 const clean = (s, max) => (typeof s === 'string' || typeof s === 'number' ? String(s) : '')
-  .replace(/\s+/g, ' ').trim().slice(0, max);
+  .replace(INVISIBLE, '').replace(/\s+/g, ' ').trim().slice(0, max);
 const cleanLong = (s, max) => (typeof s === 'string' ? s : '')
-  .replace(/\r/g, '').trim().slice(0, max);
+  .replace(/\r/g, '').replace(INVISIBLE, '').trim().slice(0, max);
 
 const USERNAME_RE = /^[a-z0-9._-]{3,24}$/;
 // Deliberately loose: the mail server is the real judge, this only stops junk.

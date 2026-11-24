@@ -34,7 +34,10 @@ export async function pageUser(id) {
       h('p', { class: 'person-sub' }, '@' + t.username, ' ', roleBadge(t.role)),
       h('p', { class: 'profile-status' }, roleLine(t)),
       t.email ? h('p', { class: 'person-sub', text: t.email }) : null,
-      h('p', { class: 'person-sub', text: [t.createdBy ? 'Invited by ' + dn(t.createdBy) : t.original ? 'Original admin' : 'Added with a setup link', 'on ' + fmtTime(t.createdAt), t.lastLogin ? 'last signed in ' + ago(t.lastLogin) : 'never signed in'].join(' · ') }),
+      // who made the account and its last sign-in are only sent to the people who run it
+      h('p', { class: 'person-sub', text: t.accountDetails
+        ? [t.createdBy ? 'Invited by ' + dn(t.createdBy) : t.original ? 'Original admin' : 'Added with a setup link', 'on ' + fmtTime(t.createdAt), t.lastLogin ? 'last signed in ' + ago(t.lastLogin) : 'never signed in'].join(' · ')
+        : 'Member since ' + fmtTime(t.createdAt) }),
       h('div', { class: 'head-actions left' },
         t.can.reset ? h('button', { class: 'btn-ghost btn-small', onclick: () => resetModal(t), text: t.pending ? 'New invite link' : 'Send reset link' }) : null,
         t.can.toggle ? activeToggle(t) : null,

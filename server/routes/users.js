@@ -198,7 +198,7 @@ router.post('/:id/transfer', (req, res) => {
       log(actor, 'transfer', 'transferred ' + plural(rs.length, 'roadmap', 'roadmaps') + ' and ' + plural(ms.length, 'team member', 'team members') +
         ' from ' + from.name + ' to ' + to.name, { subjectId: from.id });
       result = { roadmaps: rs.length, members: ms.length };
-      if (req.body.deactivate === true) {
+      if (req.body && req.body.deactivate === true) {
         const fresh = getUser(from.id);
         const no = deactivateRefusal(actor, fresh);
         if (no) throw Object.assign(new Error(no[1]), { status: no[0] });
@@ -220,12 +220,24 @@ router.get('/:id', (req, res) => {
   const u = req.user;
   const row = personRow(u, t);
   row.createdAt = t.createdAt;
-  row.createdBy = t.createdBy ? personFor(u, getUser(t.createdBy)) : null;
-  row.lastLogin = lastLogin(t.id);
   // the very first account, made with the very first setup link
   row.original = !t.createdBy && t.id === db.prepare('SELECT MIN(id) AS id FROM users').get().id;
   row.isMe = u.id === t.id;
-  if (P.canSeeAccountLog(u, t)) row.email = t.email;
+  // Account details (who made it, last sign-in, email) are for the people who
+  // run the account, not for every colleague who shares a roadmap with it.
+  row.accountDetails = P.canSeeAccountLog(u, t);
+  if (row.accountDetails) {
+    row.createdBy = t.createdBy ? personFor(u, getUser(t.createdBy)) : null;
+    row.lastLogin = lastLogin(t.id);
+    row.email = t.email;
+  } else {
+    row.createdBy = null;
+    row.lastLogin = null;
+    // whether they have set a password yet, a pending link, who deactivated them
+    row.pending = false;
+    row.pendingInvite = null;
+    row.deactivatedByIt = false;
+  }
   res.json({ user: row });
 });
 
@@ -235,9 +247,16 @@ router.get('/:id/log', (req, res) => {
   if (!t) return;
   if (!P.canSeeAccountLog(req.user, t)) return fail(res, 403, "You cannot see this account's log.");
   const about = req.query.part === 'about';
-  res.json(about
-    ? auditPage(req, 'a.subject_id = @id AND (a.actor_id IS NULL OR a.actor_id != @id)', { id: t.id })
-    : auditPage(req, 'a.actor_id = @id', { id: t.id }));
+  const base = about ? 'a.subject_id = @id AND (a.actor_id IS NULL OR a.actor_id != @id)' : 'a.actor_id = @id';
+  // A manager reading a team member's log sees what that member did on the
+  // manager's own roadmaps (and account-level entries), not what they did on
+  // another manager's roadmap, which the manager can't open themselves.
+  const scoped = req.user.role === 'it' || req.user.id === t.id
+    ? base
+    : base + ` AND (a.roadmap_id IS NULL OR a.roadmap_id IN (
+        SELECT r.id FROM roadmaps r WHERE r.deleted_at IS NULL AND (r.manager_id = @viewer
+          OR r.id IN (SELECT m.roadmap_id FROM roadmap_members m WHERE m.user_id = @viewer))))`;
+  res.json(auditPage(req, scoped, scoped === base ? { id: t.id } : { id: t.id, viewer: req.user.id }));
 });
 
 // GET /api/users/:id/avatar — the stored data URL served as a real image, so

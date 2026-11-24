@@ -21,6 +21,9 @@ function baseEnv(dataDir, extra) {
     NODE_ENV: 'test',
     APP_URL: '',
     TRUST_PROXY: '',
+    TRUST_CF_CONNECTING_IP: '',
+    // off here so a fast run of many tests can't trip it; security.test.js turns it on
+    WRITE_LIMIT_PER_MINUTE: '0',
     SMTP_HOST: '',
     SMTP_PORT: '',
     SMTP_USER: '',
